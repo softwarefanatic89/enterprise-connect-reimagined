@@ -376,12 +376,12 @@ function Bubble({
             {m.reply && (
               <div className={`mx-3 mt-3 flex items-start gap-2 rounded-xl px-2.5 py-1.5 ${
                 out
-                  ? "bg-white/10 border-l-2 border-[oklch(0.88_0.18_118)]"
+                  ? "bg-white/10 border-l-2 border-[oklch(0.72_0.13_258)]"
                   : `border-l-2 ${ROLE[m.reply.role].ring} ${ROLE[m.reply.role].bg}`
               }`}>
                 <Quote className={`mt-0.5 h-3 w-3 shrink-0 ${out ? "text-white/60" : "text-muted-foreground"}`} />
                 <div className="min-w-0">
-                  <div className={`font-mono text-[10px] font-bold ${out ? "text-[oklch(0.88_0.18_118)]" : ROLE[m.reply.role].text}`}>{m.reply.id}</div>
+                  <div className={`font-mono text-[10px] font-bold ${out ? "text-[oklch(0.72_0.13_258)]" : ROLE[m.reply.role].text}`}>{m.reply.id}</div>
                   <div className={`truncate text-[11.5px] ${out ? "text-white/75" : "text-muted-foreground"}`}>{m.reply.text}</div>
                 </div>
               </div>
@@ -431,7 +431,7 @@ function Bubble({
                   aria-label={label}
                   className={`reaction-chip group/rx relative flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.55_0.2_295)] focus-visible:ring-offset-1 ${
                     r.mine
-                      ? "border-[oklch(0.88_0.18_118)] bg-[oklch(0.95_0.16_118)]/50 text-foreground shadow-[0_2px_10px_-4px_oklch(0.85_0.18_118/0.6)]"
+                      ? "border-[oklch(0.72_0.13_258)] bg-[oklch(0.86_0.09_258)]/50 text-foreground shadow-[0_2px_10px_-4px_oklch(0.85_0.18_118/0.6)]"
                       : "border-border bg-white text-foreground hover:border-[oklch(0.55_0.2_295)]/40 hover:bg-[oklch(0.98_0.02_295)]"
                   }`}
                 >
@@ -562,7 +562,7 @@ function BubbleFooter({ m, out }: { m: Message; out: boolean }) {
       </div>
       {out && (
         <span key={m.read} className={`tick-in inline-flex items-center gap-1 text-[10px] ${out ? "text-white/70" : "text-muted-foreground"}`}>
-          {m.read === "read" ? <CheckCheck className="h-3.5 w-3.5 text-[oklch(0.88_0.18_118)]" /> : <Check className="h-3.5 w-3.5" />}
+          {m.read === "read" ? <CheckCheck className="h-3.5 w-3.5 text-[oklch(0.72_0.13_258)]" /> : <Check className="h-3.5 w-3.5" />}
           {m.read}
         </span>
       )}
@@ -577,7 +577,7 @@ function FBtn({ icon, label, accent, out }: { icon: React.ReactNode; label: stri
       title={label}
       className={`group/btn flex h-7 items-center gap-1 rounded-md px-1.5 transition-all ${
         out
-          ? `text-white/60 hover:bg-white/10 ${accent ? "hover:text-[oklch(0.88_0.18_118)]" : "hover:text-white"}`
+          ? `text-white/60 hover:bg-white/10 ${accent ? "hover:text-[oklch(0.72_0.13_258)]" : "hover:text-white"}`
           : `text-muted-foreground hover:bg-surface ${accent ? "hover:text-[oklch(0.55_0.2_295)]" : "hover:text-foreground"}`
       }`}
     >
@@ -756,7 +756,7 @@ function SmartComposer({ chat }: { chat: Conversation }) {
         <AiSuggestionPanel onPick={(t) => { setValue(t); ref.current?.focus(); }} />
 
         {/* Composer card — solid premium surface */}
-        <div className="rounded-[18px] border border-border bg-surface shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_8px_24px_-12px_oklch(0.2_0.04_265/0.18)] transition-all focus-within:border-gold/50 focus-within:shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_0_0_4px_oklch(0.78_0.12_80/0.08),0_12px_32px_-12px_oklch(0.2_0.04_265/0.22)]">
+        <div className="rounded-[18px] border border-border bg-surface shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_8px_24px_-12px_oklch(0.2_0.04_265/0.18)] transition-all focus-within:border-gold/50 focus-within:shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_0_0_4px_oklch(0.72_0.12_258/0.08),0_12px_32px_-12px_oklch(0.2_0.04_265/0.22)]">
 
           {/* Emotion drawer (revealed via long-press / More) */}
           {showEmotions && (
