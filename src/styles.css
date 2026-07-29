@@ -438,9 +438,8 @@
 
   .bg-mesh {
     background-image:
-      radial-gradient(at 18% 0%, color-mix(in oklab, var(--color-lavender) 38%, transparent) 0, transparent 55%),
-      radial-gradient(at 82% 8%, color-mix(in oklab, var(--color-cyan) 32%, transparent) 0, transparent 55%),
-      radial-gradient(at 50% 100%, color-mix(in oklab, var(--color-mint) 28%, transparent) 0, transparent 55%);
+      radial-gradient(at 18% 0%, color-mix(in oklab, var(--color-primary) 6%, transparent) 0, transparent 55%),
+      radial-gradient(at 82% 8%, color-mix(in oklab, var(--color-violet) 5%, transparent) 0, transparent 55%);
   }
 
 
@@ -658,12 +657,10 @@
   .canvas-mesh {
     background-color: var(--color-chat-canvas);
     background-image:
-      radial-gradient(900px 480px at 8% -10%, color-mix(in oklab, var(--color-lavender) 55%, transparent), transparent 60%),
-      radial-gradient(720px 420px at 100% 0%, color-mix(in oklab, var(--color-cyan) 45%, transparent), transparent 55%),
-      radial-gradient(640px 480px at 50% 110%, color-mix(in oklab, var(--color-mint) 38%, transparent), transparent 60%),
-      radial-gradient(420px 320px at 92% 92%, color-mix(in oklab, var(--color-pink) 35%, transparent), transparent 60%),
-      radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--color-foreground) 5%, transparent) 1px, transparent 0);
-    background-size: auto, auto, auto, auto, 28px 28px;
+      radial-gradient(900px 480px at 8% -10%, color-mix(in oklab, var(--color-primary) 5%, transparent), transparent 60%),
+      radial-gradient(720px 420px at 100% 0%, color-mix(in oklab, var(--color-violet) 4%, transparent), transparent 55%),
+      radial-gradient(circle at 1px 1px, color-mix(in oklab, var(--color-foreground) 4%, transparent) 1px, transparent 0);
+    background-size: auto, auto, 28px 28px;
   }
 
 
