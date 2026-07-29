@@ -12,8 +12,17 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Software Vala — Enterprise Chat" },
-      { name: "description", content: "Premium enterprise chat experience for the Software Vala ecosystem." },
+      { title: "Enterprise Chat — Software Vala" },
+      {
+        name: "description",
+        content:
+          "Immutable, audit-grade conversations with permanent message records for the Software Vala ecosystem.",
+      },
+      { property: "og:title", content: "Enterprise Chat — Software Vala" },
+      {
+        property: "og:description",
+        content: "Immutable, audit-grade enterprise conversations with permanent message records.",
+      },
     ],
   }),
   component: Index,
