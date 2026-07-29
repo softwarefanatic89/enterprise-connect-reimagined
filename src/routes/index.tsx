@@ -52,9 +52,9 @@ function Index() {
         type="button"
         onClick={() => setNavOpen(true)}
         aria-label="Open conversation list"
-        className="fixed bottom-24 left-4 z-40 grid h-12 w-12 place-items-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-float)] transition-all hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background md:hidden"
+        className="fixed left-0 top-1/2 z-40 grid h-14 w-8 -translate-y-1/2 place-items-center rounded-r-2xl bg-primary/95 text-primary-foreground shadow-[var(--shadow-float)] backdrop-blur transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary md:hidden"
       >
-        <Menu className="h-5 w-5" />
+        <Menu className="h-4.5 w-4.5" />
       </button>
 
       {/* ─── Mobile: floating details trigger ─── */}
@@ -62,9 +62,9 @@ function Index() {
         type="button"
         onClick={() => setDetailsOpen(true)}
         aria-label="Open conversation details"
-        className="fixed bottom-24 right-4 z-40 grid h-12 w-12 place-items-center rounded-full bg-surface text-foreground shadow-[var(--shadow-float)] ring-1 ring-border transition-all hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background xl:hidden"
+        className="fixed right-0 top-1/2 z-40 grid h-14 w-8 -translate-y-1/2 place-items-center rounded-l-2xl bg-surface/95 text-foreground shadow-[var(--shadow-float)] ring-1 ring-border backdrop-blur transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary xl:hidden"
       >
-        <PanelRightOpen className="h-5 w-5" />
+        <PanelRightOpen className="h-4.5 w-4.5" />
       </button>
 
       {/* ─── Mobile drawer: conversation list (slides from left) ─── */}

@@ -444,7 +444,7 @@ function EntityAvatar({ c, active }: { c: Conversation; active: boolean }) {
       {c.presence && c.kind === "USER" && (
         <span
           aria-label={PRESENCE_META[c.presence].label}
-          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ${active ? "ring-[oklch(0.9_0.18_115)]" : "ring-white"} ${PRESENCE_META[c.presence].dot}`}
+          className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full ring-2 ${active ? "ring-[oklch(0.76_0.12_258)]" : "ring-white"} ${PRESENCE_META[c.presence].dot}`}
         />
       )}
     </div>
@@ -474,7 +474,7 @@ function ConvRow({ c, active, onClick, onKeyDown, tabIndex }: { c: Conversation;
       aria-label={`${c.id} — ${c.department}${c.priority ? `, priority ${c.priority}` : ""}${c.unread ? `, ${c.unread} unread` : ""}. Enter to open.`}
       className={`group relative mx-1 my-1 grid w-[calc(100%-0.5rem)] grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-1 ${
         active
-          ? "bg-gradient-to-br from-[oklch(0.95_0.16_118)] to-[oklch(0.86_0.2_115)] text-[oklch(0.2_0.06_265)] shadow-[0_14px_36px_-12px_oklch(0.6_0.18_118/0.55),inset_0_1px_0_oklch(1_0_0/0.5)]"
+          ? "bg-gradient-to-br from-[oklch(0.86_0.09_258)] to-[oklch(0.74_0.13_262)] text-[oklch(0.2_0.06_265)] shadow-[0_14px_36px_-12px_oklch(0.55_0.16_262/0.55),inset_0_1px_0_oklch(1_0_0/0.5)]"
           : "bg-white text-[oklch(0.2_0.04_280)] hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_30px_-14px_oklch(0.2_0.04_280/0.45)]"
       }`}
     >
@@ -493,7 +493,7 @@ function ConvRow({ c, active, onClick, onKeyDown, tabIndex }: { c: Conversation;
           {c.muted && <VolumeX className="h-3 w-3 shrink-0 opacity-60" />}
           {c.priority && (
             <span className={`ml-1 inline-flex h-[15px] shrink-0 items-center rounded-[4px] px-1 text-[9px] font-black tracking-wider ${
-              active ? "bg-[oklch(0.2_0.06_265)] text-[oklch(0.95_0.16_118)]" : priCls
+              active ? "bg-[oklch(0.2_0.06_265)] text-[oklch(0.86_0.09_258)]" : priCls
             }`}>{c.priority}</span>
           )}
           <span className={`ml-auto shrink-0 font-mono text-[10px] font-semibold tabular-nums ${
@@ -527,7 +527,7 @@ function ConvRow({ c, active, onClick, onKeyDown, tabIndex }: { c: Conversation;
           {c.unread ? (
             <span className={`ml-auto inline-flex h-[18px] min-w-[18px] shrink-0 items-center justify-center rounded-full px-1.5 text-[10px] font-black tabular-nums ${
               active
-                ? "bg-[oklch(0.2_0.06_265)] text-[oklch(0.95_0.16_118)]"
+                ? "bg-[oklch(0.2_0.06_265)] text-[oklch(0.86_0.09_258)]"
                 : (c.priority === "P0" || c.health === "crit")
                   ? "bg-rose-500 text-white shadow-[0_4px_10px_-2px_oklch(0.6_0.16_30/0.6)]"
                   : "bg-[oklch(0.2_0.06_265)] text-white"

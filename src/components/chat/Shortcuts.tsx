@@ -50,7 +50,7 @@ export function ShortcutsLayer() {
       <button
         onClick={() => setOpen(true)}
         title="Keyboard shortcuts (⌘/)"
-        className="press fixed bottom-4 right-4 z-40 grid h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground shadow-[0_8px_24px_-12px_oklch(0.2_0.04_265/0.3)] transition-all hover:text-gold hover:shadow-[0_12px_32px_-12px_oklch(0.78_0.12_80/0.4)]"
+        className="press fixed bottom-4 right-4 z-40 grid h-9 w-9 place-items-center rounded-full border border-border bg-surface text-muted-foreground shadow-[0_8px_24px_-12px_oklch(0.2_0.04_265/0.3)] transition-all hover:text-gold hover:shadow-[0_12px_32px_-12px_oklch(0.72_0.12_258/0.4)]"
       >
         <Keyboard className="h-4 w-4" />
       </button>

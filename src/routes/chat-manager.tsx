@@ -278,7 +278,7 @@ const ROLE_PERMISSIONS: Record<string, {
 }> = {
   "Workspace Owner": {
     scope: "Full sovereign access · WS-SV-PRIME",
-    color: "amber",
+    color: "indigo",
     allow: [
       "Manage every Chat Manager policy & role",
       "Approve compliance & retention overrides",

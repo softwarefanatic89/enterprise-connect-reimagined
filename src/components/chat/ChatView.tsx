@@ -45,15 +45,15 @@ export function ChatView({ chat }: { chat: Conversation }) {
 function ConversationHeader({ chat }: { chat: Conversation }) {
   const r = chat.role ? ROLE[chat.role] : null;
   return (
-    <header className="sticky top-0 z-10 flex items-center gap-3.5 border-b border-border bg-surface/95 px-6 py-3 backdrop-blur-xl">
-      <div className="relative">
-        <div className={`avatar-3d grid h-12 w-12 place-items-center rounded-[18px] border-2 ${r ? r.ring : "border-border"} ${r ? r.bg : "bg-surface"} text-[18px]`}>
+    <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-surface/95 px-3 py-2.5 backdrop-blur-xl sm:gap-3.5 sm:px-6 sm:py-3">
+      <div className="relative shrink-0">
+        <div className={`avatar-3d grid h-10 w-10 place-items-center rounded-[16px] border-2 sm:h-12 sm:w-12 sm:rounded-[18px] ${r ? r.ring : "border-border"} ${r ? r.bg : "bg-surface"} text-[18px]`}>
           <span className="emoji-3d emoji-xl">{r ? r.icon : <Hash className="h-5 w-5 text-muted-foreground" />}</span>
         </div>
         <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[--color-success] ring-2 ring-surface animate-pulse-ring" />
       </div>
 
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <h2 className="truncate font-mono text-[14.5px] font-bold tracking-wide">{chat.id}</h2>
           {chat.verified && <ShieldCheck className="h-3.5 w-3.5 text-[--color-success]" />}
@@ -61,7 +61,7 @@ function ConversationHeader({ chat }: { chat: Conversation }) {
             {chat.kind}
           </span>
         </div>
-        <div className="mt-0.5 flex items-center gap-2 text-[11px]">
+        <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
           <span className="inline-flex items-center gap-1 font-semibold text-[--color-success]">
             <span className="h-1.5 w-1.5 rounded-full bg-[--color-success]" /> Online
           </span>
@@ -72,23 +72,23 @@ function ConversationHeader({ chat }: { chat: Conversation }) {
             <span className="text-muted-foreground/70">· 4 active</span>
           </span>
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-1 text-[10.5px]">
+        <div className="mt-1 hidden flex-wrap items-center gap-1 text-[10.5px] lg:flex">
           <Tag>{chat.department}</Tag>
           <Tag>{chat.module}</Tag>
           {chat.project && <Tag>{chat.project}</Tag>}
           {chat.ams && <Tag>{chat.ams}</Tag>}
         </div>
       </div>
-      <div className="ml-auto flex items-center gap-1">
-        <span className="mr-2 inline-flex items-center gap-1 rounded-full border border-[--color-success]/30 bg-[--color-success]/10 px-2 py-0.5 text-[10px] font-semibold text-[--color-success]">
+      <div className="ml-auto flex shrink-0 items-center gap-1">
+        <span className="mr-2 hidden items-center gap-1 whitespace-nowrap rounded-full border border-[--color-success]/30 bg-[--color-success]/10 px-2 py-0.5 text-[10px] font-semibold text-[--color-success] xl:inline-flex">
           <Lock className="h-2.5 w-2.5" /> E2E · Internal Only
         </span>
-        <HBtn label="Search in conversation"><Search className="h-4 w-4" /></HBtn>
+        <span className="hidden sm:contents"><HBtn label="Search in conversation"><Search className="h-4 w-4" /></HBtn></span>
         <HBtn label="Start voice call"><Phone className="h-4 w-4" /></HBtn>
-        <HBtn label="Start video call"><Video className="h-4 w-4" /></HBtn>
-        <HBtn label="Pinned messages"><Pin className="h-4 w-4" /></HBtn>
-        <HBtn label="Members"><Users className="h-4 w-4" /></HBtn>
-        <LanguageMenu scopeId={chat.id} scopeLabel={chat.id} />
+        <span className="hidden sm:contents"><HBtn label="Start video call"><Video className="h-4 w-4" /></HBtn></span>
+        <span className="hidden lg:contents"><HBtn label="Pinned messages"><Pin className="h-4 w-4" /></HBtn></span>
+        <span className="hidden lg:contents"><HBtn label="Members"><Users className="h-4 w-4" /></HBtn></span>
+        <span className="hidden md:contents"><LanguageMenu scopeId={chat.id} scopeLabel={chat.id} /></span>
         <HBtn label="More actions"><MoreHorizontal className="h-4 w-4" /></HBtn>
       </div>
     </header>
@@ -110,7 +110,7 @@ function HBtn({ children, label }: { children: React.ReactNode; label: string })
 
 function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-md border border-border bg-surface px-1.5 py-0.5 font-mono text-[9.5px] text-muted-foreground">
+    <span className="whitespace-nowrap rounded-md border border-border bg-surface px-1.5 py-0.5 font-mono text-[9.5px] text-muted-foreground">
       {children}
     </span>
   );
@@ -335,7 +335,7 @@ function Bubble({
           <div
             className={`grid h-10 w-10 place-items-center rounded-full text-[16px] shadow-[inset_0_1px_0_oklch(1_0_0/0.7),0_8px_18px_-8px_oklch(0.55_0.18_295/0.45)] ${
               out
-                ? "bg-gradient-to-br from-[oklch(0.92_0.17_118)] to-[oklch(0.82_0.18_115)] text-[oklch(0.25_0.06_265)]"
+                ? "bg-gradient-to-br from-[oklch(0.86_0.09_258)] to-[oklch(0.74_0.13_262)] text-[oklch(0.25_0.06_265)]"
                 : "bg-gradient-to-br from-[oklch(0.92_0.08_295)] to-[oklch(0.78_0.13_295)] text-white"
             }`}
           >
@@ -376,12 +376,12 @@ function Bubble({
             {m.reply && (
               <div className={`mx-3 mt-3 flex items-start gap-2 rounded-xl px-2.5 py-1.5 ${
                 out
-                  ? "bg-white/10 border-l-2 border-[oklch(0.88_0.18_118)]"
+                  ? "bg-white/10 border-l-2 border-[oklch(0.72_0.13_258)]"
                   : `border-l-2 ${ROLE[m.reply.role].ring} ${ROLE[m.reply.role].bg}`
               }`}>
                 <Quote className={`mt-0.5 h-3 w-3 shrink-0 ${out ? "text-white/60" : "text-muted-foreground"}`} />
                 <div className="min-w-0">
-                  <div className={`font-mono text-[10px] font-bold ${out ? "text-[oklch(0.88_0.18_118)]" : ROLE[m.reply.role].text}`}>{m.reply.id}</div>
+                  <div className={`font-mono text-[10px] font-bold ${out ? "text-[oklch(0.72_0.13_258)]" : ROLE[m.reply.role].text}`}>{m.reply.id}</div>
                   <div className={`truncate text-[11.5px] ${out ? "text-white/75" : "text-muted-foreground"}`}>{m.reply.text}</div>
                 </div>
               </div>
@@ -431,7 +431,7 @@ function Bubble({
                   aria-label={label}
                   className={`reaction-chip group/rx relative flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.55_0.2_295)] focus-visible:ring-offset-1 ${
                     r.mine
-                      ? "border-[oklch(0.88_0.18_118)] bg-[oklch(0.95_0.16_118)]/50 text-foreground shadow-[0_2px_10px_-4px_oklch(0.85_0.18_118/0.6)]"
+                      ? "border-[oklch(0.72_0.13_258)] bg-[oklch(0.86_0.09_258)]/50 text-foreground shadow-[0_2px_10px_-4px_oklch(0.68_0.14_258/0.45)]"
                       : "border-border bg-white text-foreground hover:border-[oklch(0.55_0.2_295)]/40 hover:bg-[oklch(0.98_0.02_295)]"
                   }`}
                 >
@@ -562,7 +562,7 @@ function BubbleFooter({ m, out }: { m: Message; out: boolean }) {
       </div>
       {out && (
         <span key={m.read} className={`tick-in inline-flex items-center gap-1 text-[10px] ${out ? "text-white/70" : "text-muted-foreground"}`}>
-          {m.read === "read" ? <CheckCheck className="h-3.5 w-3.5 text-[oklch(0.88_0.18_118)]" /> : <Check className="h-3.5 w-3.5" />}
+          {m.read === "read" ? <CheckCheck className="h-3.5 w-3.5 text-[oklch(0.72_0.13_258)]" /> : <Check className="h-3.5 w-3.5" />}
           {m.read}
         </span>
       )}
@@ -577,7 +577,7 @@ function FBtn({ icon, label, accent, out }: { icon: React.ReactNode; label: stri
       title={label}
       className={`group/btn flex h-7 items-center gap-1 rounded-md px-1.5 transition-all ${
         out
-          ? `text-white/60 hover:bg-white/10 ${accent ? "hover:text-[oklch(0.88_0.18_118)]" : "hover:text-white"}`
+          ? `text-white/60 hover:bg-white/10 ${accent ? "hover:text-[oklch(0.72_0.13_258)]" : "hover:text-white"}`
           : `text-muted-foreground hover:bg-surface ${accent ? "hover:text-[oklch(0.55_0.2_295)]" : "hover:text-foreground"}`
       }`}
     >
@@ -756,7 +756,7 @@ function SmartComposer({ chat }: { chat: Conversation }) {
         <AiSuggestionPanel onPick={(t) => { setValue(t); ref.current?.focus(); }} />
 
         {/* Composer card — solid premium surface */}
-        <div className="rounded-[18px] border border-border bg-surface shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_8px_24px_-12px_oklch(0.2_0.04_265/0.18)] transition-all focus-within:border-gold/50 focus-within:shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_0_0_4px_oklch(0.78_0.12_80/0.08),0_12px_32px_-12px_oklch(0.2_0.04_265/0.22)]">
+        <div className="rounded-[18px] border border-border bg-surface shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_8px_24px_-12px_oklch(0.2_0.04_265/0.18)] transition-all focus-within:border-gold/50 focus-within:shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_0_0_4px_oklch(0.72_0.12_258/0.08),0_12px_32px_-12px_oklch(0.2_0.04_265/0.22)]">
 
           {/* Emotion drawer (revealed via long-press / More) */}
           {showEmotions && (
@@ -786,10 +786,10 @@ function SmartComposer({ chat }: { chat: Conversation }) {
             <ExpressionPicker onPick={(e) => { setValue((v) => v + e); ref.current?.focus(); }} />
 
             {/* 3. Attachment */}
-            <CBtn label="Attach"><Paperclip className="h-[18px] w-[18px]" /></CBtn>
+            <span className="hidden sm:contents"><CBtn label="Attach"><Paperclip className="h-[18px] w-[18px]" /></CBtn></span>
 
             {/* 4. Voice */}
-            <CBtn label="Voice note"><Mic className="h-[18px] w-[18px]" /></CBtn>
+            <span className="hidden sm:contents"><CBtn label="Voice note"><Mic className="h-[18px] w-[18px]" /></CBtn></span>
 
             {/* 5. Message Box */}
             <textarea
@@ -804,14 +804,14 @@ function SmartComposer({ chat }: { chat: Conversation }) {
                 if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
               }}
               placeholder={`Message ${chat.id}`}
-              className="mx-1 max-h-40 min-h-[40px] flex-1 resize-none bg-transparent px-2 py-2 text-[13.5px] leading-relaxed outline-none placeholder:text-muted-foreground"
+              className="mx-1 max-h-40 min-h-[40px] w-full min-w-0 flex-1 resize-none bg-transparent px-2 py-2 text-[13.5px] leading-relaxed outline-none placeholder:text-muted-foreground"
             />
 
             {/* 6. Translate toggle — subtle */}
             <button
               onClick={() => setTranslate((t) => !t)}
               title="Translate before send"
-              className={`press grid h-9 w-9 place-items-center rounded-lg transition-all ${
+              className={`press hidden h-9 w-9 place-items-center rounded-lg transition-all sm:grid ${
                 translate ? "bg-gold/15 text-gold" : "text-muted-foreground/70 hover:bg-surface-hover hover:text-foreground"
               }`}
             >
@@ -822,7 +822,7 @@ function SmartComposer({ chat }: { chat: Conversation }) {
             <button
               onClick={handleSend}
               disabled={!value.trim() || sendState !== "idle"}
-              className={`ml-1 grid h-10 w-10 place-items-center rounded-xl transition-all duration-300 active:scale-90 disabled:opacity-50 ${
+              className={`ml-1 grid h-11 w-11 shrink-0 place-items-center rounded-xl transition-all duration-300 active:scale-90 disabled:opacity-50 sm:h-10 sm:w-10 ${
                 sendState === "sent"
                   ? "bg-[--color-success] text-white shadow-[var(--shadow-glow)]"
                   : value.trim() || sendState === "sending"
@@ -841,8 +841,8 @@ function SmartComposer({ chat }: { chat: Conversation }) {
           </div>
 
           {/* Minimal meta strip — hidden affordances surfaced subtly */}
-          <div className="flex items-center justify-between border-t border-border-soft px-3 py-1.5 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 border-t border-border-soft px-3 py-1.5 text-[10px] text-muted-foreground">
+            <span className="flex min-w-0 items-center gap-2">
               <button
                 onClick={() => setShowEmotions((s) => !s)}
                 className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 font-semibold transition-all hover:border-gold/40 hover:text-foreground"
@@ -851,13 +851,15 @@ function SmartComposer({ chat }: { chat: Conversation }) {
                 <span className="emoji-3d">{EMOTION[emotion].icon}</span>
                 {EMOTION[emotion].label}
               </button>
-              <span className="opacity-60">·</span>
-              <kbd className="rounded border border-border bg-surface px-1">⏎</kbd> send
-              <kbd className="rounded border border-border bg-surface px-1">⇧⏎</kbd> new line
-              <kbd className="rounded border border-border bg-surface px-1">⌘K</kbd> more
+              <span className="hidden opacity-60 lg:inline">·</span>
+              <span className="hidden items-center gap-2 lg:inline-flex">
+                <kbd className="rounded border border-border bg-surface px-1">⏎</kbd> send
+                <kbd className="rounded border border-border bg-surface px-1">⇧⏎</kbd> new line
+                <kbd className="rounded border border-border bg-surface px-1">⌘K</kbd> more
+              </span>
             </span>
-            <span className="flex items-center gap-2">
-              <Lock className="h-2.5 w-2.5" /> Sealed · {chat.id}
+            <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+              <span className="hidden items-center gap-1 sm:inline-flex"><Lock className="h-2.5 w-2.5" /> Sealed · {chat.id}</span>
               <span className={`font-mono ${left < 100 ? "text-[--color-warning]" : ""}`}>{value.length}/{max}</span>
             </span>
 

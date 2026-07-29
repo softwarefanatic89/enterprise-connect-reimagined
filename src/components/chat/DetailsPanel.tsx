@@ -172,14 +172,14 @@ function UserContext() {
             <div className="avatar-3d grid h-12 w-12 place-items-center rounded-2xl bg-white/95 text-[22px]">
               <span className="emoji-3d emoji-xl">👑</span>
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-[oklch(0.18_0.05_280)] text-[oklch(0.95_0.16_118)] shadow-[0_2px_6px_oklch(0.2_0.06_265/0.4)]">
+            <span className="absolute -bottom-0.5 -right-0.5 grid h-5 w-5 place-items-center rounded-full bg-[oklch(0.18_0.05_280)] text-[oklch(0.86_0.09_258)] shadow-[0_2px_6px_oklch(0.2_0.06_265/0.4)]">
               <ShieldCheck className="h-3 w-3" />
             </span>
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <span className="truncate font-mono text-[12.5px] font-black tracking-wide tabular-nums">BOSS-000001</span>
-              <span className="rounded-md bg-[oklch(0.18_0.05_280)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[oklch(0.95_0.16_118)]">Boss</span>
+              <span className="rounded-md bg-[oklch(0.18_0.05_280)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[oklch(0.86_0.09_258)]">Boss</span>
             </div>
             <div className="mt-0.5 font-mono text-[10.5px] opacity-75">DPT-LEAD · MOD-EXEC</div>
             <div className="mt-1.5 flex items-center gap-1.5 text-[11px]">
@@ -223,16 +223,16 @@ function ProjectOverview() {
             <span className="font-mono font-bold tabular-nums text-gold">{progress}%</span>
           </div>
           <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-sidebar-border">
-            <div className="h-full rounded-full bg-gradient-gold shadow-[0_0_12px_oklch(0.88_0.18_118/0.5)] transition-all duration-700" style={{ width: `${progress}%` }} />
+            <div className="h-full rounded-full bg-gradient-gold shadow-[0_0_12px_oklch(0.72_0.13_258/0.5)] transition-all duration-700" style={{ width: `${progress}%` }} />
           </div>
           <svg viewBox="0 0 120 24" className="mt-2 h-6 w-full">
             <defs>
               <linearGradient id="sparkFill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="0%" stopColor="oklch(0.88 0.18 118)" stopOpacity="0.5" />
-                <stop offset="100%" stopColor="oklch(0.88 0.18 118)" stopOpacity="0" />
+                <stop offset="0%" stopColor="oklch(0.72 0.13 258)" stopOpacity="0.5" />
+                <stop offset="100%" stopColor="oklch(0.72 0.13 258)" stopOpacity="0" />
               </linearGradient>
             </defs>
-            <polyline points={spark.map((v, i) => `${(i / (spark.length - 1)) * 120},${24 - v * 22}`).join(" ")} fill="none" stroke="oklch(0.88 0.18 118)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            <polyline points={spark.map((v, i) => `${(i / (spark.length - 1)) * 120},${24 - v * 22}`).join(" ")} fill="none" stroke="oklch(0.72 0.13 258)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             <polygon points={`0,24 ${spark.map((v, i) => `${(i / (spark.length - 1)) * 120},${24 - v * 22}`).join(" ")} 120,24`} fill="url(#sparkFill)" />
           </svg>
         </div>
@@ -282,11 +282,11 @@ function AmsPanel() {
 function TaskPanel() {
   return (
     <Section label="Task Panel" icon={<ListPlus className="h-3 w-3" />} count="8 pending">
-      <div className="hover-lift sheen-on-hover relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[oklch(0.95_0.16_118)] to-[oklch(0.82_0.2_115)] p-4 text-[oklch(0.2_0.06_265)] shadow-[0_18px_40px_-14px_oklch(0.6_0.18_118/0.55),inset_0_1px_0_oklch(1_0_0/0.5)]">
+      <div className="hover-lift sheen-on-hover relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[oklch(0.86_0.09_258)] to-[oklch(0.74_0.13_265)] p-4 text-[oklch(0.2_0.06_265)] shadow-[0_18px_40px_-14px_oklch(0.55_0.16_262/0.55),inset_0_1px_0_oklch(1_0_0/0.5)]">
         <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-white/30 blur-2xl" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
         <div className="relative flex items-center gap-2">
-          <span className="avatar-3d grid h-8 w-8 place-items-center rounded-xl bg-[oklch(0.18_0.05_280)] text-[oklch(0.95_0.16_118)]">
+          <span className="avatar-3d grid h-8 w-8 place-items-center rounded-xl bg-[oklch(0.18_0.05_280)] text-[oklch(0.86_0.09_258)]">
             <Activity className="h-4 w-4" />
           </span>
           <div className="min-w-0">
@@ -299,10 +299,10 @@ function TaskPanel() {
           <LimeStat n="23" l="Done" />
           <LimeStat n="2" l="Due today" />
         </div>
-        <button className="group relative mt-3 flex w-full items-center gap-2 rounded-2xl bg-[oklch(0.18_0.05_280)] px-3 py-2 text-[oklch(0.95_0.16_118)] transition hover:bg-[oklch(0.22_0.06_280)]">
+        <button className="group relative mt-3 flex w-full items-center gap-2 rounded-2xl bg-[oklch(0.18_0.05_280)] px-3 py-2 text-[oklch(0.86_0.09_258)] transition hover:bg-[oklch(0.22_0.06_280)]">
           <Target className="h-3.5 w-3.5" />
           <span className="text-[11px] font-semibold">RC1 Code Freeze · 3d</span>
-          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-[oklch(0.95_0.16_118)] px-2 py-0.5 text-[10px] font-bold text-[oklch(0.2_0.06_265)] transition group-hover:translate-x-0.5">
+          <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-[oklch(0.86_0.09_258)] px-2 py-0.5 text-[10px] font-bold text-[oklch(0.2_0.06_265)] transition group-hover:translate-x-0.5">
             View <ChevronRight className="h-2.5 w-2.5" />
           </span>
         </button>
@@ -383,7 +383,7 @@ function AiAssistant() {
         </AiRow>
         <div className="flex items-center justify-between border-t border-gold/15 pt-2.5">
           <span className="text-[10.5px] text-sidebar-muted">3 related tasks · 1 meeting summary</span>
-          <button className="inline-flex items-center gap-1 rounded-md bg-gold/15 px-2 py-1 text-[10.5px] font-semibold text-gold ring-1 ring-gold/25 transition hover:bg-gold/25 hover:shadow-[0_0_16px_oklch(0.88_0.18_118/0.35)]">
+          <button className="inline-flex items-center gap-1 rounded-md bg-gold/15 px-2 py-1 text-[10.5px] font-semibold text-gold ring-1 ring-gold/25 transition hover:bg-gold/25 hover:shadow-[0_0_16px_oklch(0.72_0.13_258/0.35)]">
             <Wand2 className="h-3 w-3" /> Insights
           </button>
         </div>
@@ -456,7 +456,7 @@ function QuickActions() {
             onClick={() => { void it.run(); }}
             aria-label={`${it.l} (${it.k})`}
             title={`${it.l} · press ${it.k}`}
-            className={`group relative flex flex-col items-center justify-center gap-1 rounded-xl border border-sidebar-border bg-sidebar-surface px-2 py-2.5 transition-all outline-none focus-visible:-translate-y-0.5 focus-visible:border-gold/60 focus-visible:ring-2 focus-visible:ring-gold/40 hover:-translate-y-0.5 hover:border-gold/40 hover:bg-sidebar-surface-hover hover:shadow-[0_8px_20px_-10px_oklch(0.88_0.18_118/0.4)] ${
+            className={`group relative flex flex-col items-center justify-center gap-1 rounded-xl border border-sidebar-border bg-sidebar-surface px-2 py-2.5 transition-all outline-none focus-visible:-translate-y-0.5 focus-visible:border-gold/60 focus-visible:ring-2 focus-visible:ring-gold/40 hover:-translate-y-0.5 hover:border-gold/40 hover:bg-sidebar-surface-hover hover:shadow-[0_8px_20px_-10px_oklch(0.72_0.13_258/0.4)] ${
               it.tone === "danger" ? "hover:border-[--color-destructive]/50 focus-visible:border-[--color-destructive]/60 focus-visible:ring-[--color-destructive]/40 hover:shadow-[0_8px_20px_-10px_oklch(0.66_0.22_22/0.4)]" : ""
             }`}
           >
@@ -695,7 +695,7 @@ function AiRow({ icon, title, children }: { icon: React.ReactNode; title: string
 
 function Pinned({ icon, title, meta }: { icon: React.ReactNode; title: string; meta: string }) {
   return (
-    <button className="group flex w-full items-center gap-2.5 rounded-xl border border-sidebar-border bg-sidebar-surface px-2.5 py-2 text-left transition-all hover:-translate-y-px hover:border-gold/40 hover:bg-sidebar-surface-hover hover:shadow-[0_8px_20px_-10px_oklch(0.88_0.18_118/0.35)]">
+    <button className="group flex w-full items-center gap-2.5 rounded-xl border border-sidebar-border bg-sidebar-surface px-2.5 py-2 text-left transition-all hover:-translate-y-px hover:border-gold/40 hover:bg-sidebar-surface-hover hover:shadow-[0_8px_20px_-10px_oklch(0.72_0.13_258/0.35)]">
       <span className="grid h-7 w-7 place-items-center rounded-lg bg-gold/15 text-gold ring-1 ring-gold/20 transition-transform group-hover:scale-110">{icon}</span>
       <div className="min-w-0 flex-1">
         <div className="truncate text-[12px] font-semibold">{title}</div>
