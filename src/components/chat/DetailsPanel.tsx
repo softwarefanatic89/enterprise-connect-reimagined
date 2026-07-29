@@ -282,7 +282,7 @@ function AmsPanel() {
 function TaskPanel() {
   return (
     <Section label="Task Panel" icon={<ListPlus className="h-3 w-3" />} count="8 pending">
-      <div className="hover-lift sheen-on-hover relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[oklch(0.86_0.09_258)] to-[oklch(0.82_0.2_115)] p-4 text-[oklch(0.2_0.06_265)] shadow-[0_18px_40px_-14px_oklch(0.55_0.16_262/0.55),inset_0_1px_0_oklch(1_0_0/0.5)]">
+      <div className="hover-lift sheen-on-hover relative overflow-hidden rounded-[22px] bg-gradient-to-br from-[oklch(0.86_0.09_258)] to-[oklch(0.74_0.13_265)] p-4 text-[oklch(0.2_0.06_265)] shadow-[0_18px_40px_-14px_oklch(0.55_0.16_262/0.55),inset_0_1px_0_oklch(1_0_0/0.5)]">
         <div className="absolute -left-6 -bottom-6 h-24 w-24 rounded-full bg-white/30 blur-2xl" />
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
         <div className="relative flex items-center gap-2">

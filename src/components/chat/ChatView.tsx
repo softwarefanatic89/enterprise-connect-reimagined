@@ -431,7 +431,7 @@ function Bubble({
                   aria-label={label}
                   className={`reaction-chip group/rx relative flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.55_0.2_295)] focus-visible:ring-offset-1 ${
                     r.mine
-                      ? "border-[oklch(0.72_0.13_258)] bg-[oklch(0.86_0.09_258)]/50 text-foreground shadow-[0_2px_10px_-4px_oklch(0.85_0.18_118/0.6)]"
+                      ? "border-[oklch(0.72_0.13_258)] bg-[oklch(0.86_0.09_258)]/50 text-foreground shadow-[0_2px_10px_-4px_oklch(0.68_0.14_258/0.45)]"
                       : "border-border bg-white text-foreground hover:border-[oklch(0.55_0.2_295)]/40 hover:bg-[oklch(0.98_0.02_295)]"
                   }`}
                 >
