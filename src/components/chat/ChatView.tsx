@@ -786,10 +786,10 @@ function SmartComposer({ chat }: { chat: Conversation }) {
             <ExpressionPicker onPick={(e) => { setValue((v) => v + e); ref.current?.focus(); }} />
 
             {/* 3. Attachment */}
-            <CBtn label="Attach"><Paperclip className="h-[18px] w-[18px]" /></CBtn>
+            <span className="hidden sm:contents"><CBtn label="Attach"><Paperclip className="h-[18px] w-[18px]" /></CBtn></span>
 
             {/* 4. Voice */}
-            <CBtn label="Voice note"><Mic className="h-[18px] w-[18px]" /></CBtn>
+            <span className="hidden sm:contents"><CBtn label="Voice note"><Mic className="h-[18px] w-[18px]" /></CBtn></span>
 
             {/* 5. Message Box */}
             <textarea
@@ -804,14 +804,14 @@ function SmartComposer({ chat }: { chat: Conversation }) {
                 if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
               }}
               placeholder={`Message ${chat.id}`}
-              className="mx-1 max-h-40 min-h-[40px] flex-1 resize-none bg-transparent px-2 py-2 text-[13.5px] leading-relaxed outline-none placeholder:text-muted-foreground"
+              className="mx-1 max-h-40 min-h-[40px] w-full min-w-0 flex-1 resize-none bg-transparent px-2 py-2 text-[13.5px] leading-relaxed outline-none placeholder:text-muted-foreground"
             />
 
             {/* 6. Translate toggle — subtle */}
             <button
               onClick={() => setTranslate((t) => !t)}
               title="Translate before send"
-              className={`press grid h-9 w-9 place-items-center rounded-lg transition-all ${
+              className={`press hidden h-9 w-9 place-items-center rounded-lg transition-all sm:grid ${
                 translate ? "bg-gold/15 text-gold" : "text-muted-foreground/70 hover:bg-surface-hover hover:text-foreground"
               }`}
             >
@@ -822,7 +822,7 @@ function SmartComposer({ chat }: { chat: Conversation }) {
             <button
               onClick={handleSend}
               disabled={!value.trim() || sendState !== "idle"}
-              className={`ml-1 grid h-10 w-10 place-items-center rounded-xl transition-all duration-300 active:scale-90 disabled:opacity-50 ${
+              className={`ml-1 grid h-11 w-11 shrink-0 place-items-center rounded-xl transition-all duration-300 active:scale-90 disabled:opacity-50 sm:h-10 sm:w-10 ${
                 sendState === "sent"
                   ? "bg-[--color-success] text-white shadow-[var(--shadow-glow)]"
                   : value.trim() || sendState === "sending"
@@ -841,8 +841,8 @@ function SmartComposer({ chat }: { chat: Conversation }) {
           </div>
 
           {/* Minimal meta strip — hidden affordances surfaced subtly */}
-          <div className="flex items-center justify-between border-t border-border-soft px-3 py-1.5 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 border-t border-border-soft px-3 py-1.5 text-[10px] text-muted-foreground">
+            <span className="flex min-w-0 items-center gap-2">
               <button
                 onClick={() => setShowEmotions((s) => !s)}
                 className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 font-semibold transition-all hover:border-gold/40 hover:text-foreground"
@@ -851,13 +851,15 @@ function SmartComposer({ chat }: { chat: Conversation }) {
                 <span className="emoji-3d">{EMOTION[emotion].icon}</span>
                 {EMOTION[emotion].label}
               </button>
-              <span className="opacity-60">·</span>
-              <kbd className="rounded border border-border bg-surface px-1">⏎</kbd> send
-              <kbd className="rounded border border-border bg-surface px-1">⇧⏎</kbd> new line
-              <kbd className="rounded border border-border bg-surface px-1">⌘K</kbd> more
+              <span className="hidden opacity-60 lg:inline">·</span>
+              <span className="hidden items-center gap-2 lg:inline-flex">
+                <kbd className="rounded border border-border bg-surface px-1">⏎</kbd> send
+                <kbd className="rounded border border-border bg-surface px-1">⇧⏎</kbd> new line
+                <kbd className="rounded border border-border bg-surface px-1">⌘K</kbd> more
+              </span>
             </span>
-            <span className="flex items-center gap-2">
-              <Lock className="h-2.5 w-2.5" /> Sealed · {chat.id}
+            <span className="flex shrink-0 items-center gap-2 whitespace-nowrap">
+              <span className="hidden items-center gap-1 sm:inline-flex"><Lock className="h-2.5 w-2.5" /> Sealed · {chat.id}</span>
               <span className={`font-mono ${left < 100 ? "text-[--color-warning]" : ""}`}>{value.length}/{max}</span>
             </span>
 
