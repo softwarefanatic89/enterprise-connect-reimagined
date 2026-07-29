@@ -121,16 +121,16 @@
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-muted: oklch(0.72 0.028 258);
 
-  /* Repurpose "gold" as calm neutral highlight (no lime pop) */
-  --gold: oklch(0.762 0.156 71);                      /* warning amber */
-  --gold-soft: oklch(0.94 0.06 78);
+  /* Executive accent used on dark navy panels — refined blue, never lime/gold */
+  --gold: oklch(0.755 0.115 258);                     /* soft executive blue */
+  --gold-soft: oklch(0.86 0.07 262);
 
   /* Refined accent hues */
   --lavender: oklch(0.72 0.13 275);
   --violet:   oklch(0.62 0.19 275);                   /* #6366F1 secondary accent */
   --cyan:     oklch(0.78 0.09 220);
   --mint:     oklch(0.82 0.08 175);
-  --lime:     oklch(0.712 0.152 162);                 /* success as "lime" slot */
+  --lime:     oklch(0.712 0.132 200);                 /* calm teal, no lime pop */
   --coral:    oklch(0.72 0.15 30);
   --pink:     oklch(0.78 0.11 350);
 
@@ -138,7 +138,7 @@
   --chat-canvas-elevated: oklch(0.976 0.006 260);
 
   --gradient-brand:  linear-gradient(135deg, oklch(0.637 0.198 258), oklch(0.62 0.19 275));
-  --gradient-gold:   linear-gradient(135deg, oklch(0.762 0.156 71), oklch(0.72 0.14 60));
+  --gradient-gold:   linear-gradient(135deg, oklch(0.72 0.13 258), oklch(0.66 0.15 275));
   --gradient-bubble: linear-gradient(135deg, oklch(0.637 0.198 258), oklch(0.6 0.2 268));
   --gradient-aurora: linear-gradient(135deg,
       oklch(0.94 0.04 258) 0%,
