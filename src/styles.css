@@ -729,6 +729,11 @@
   @keyframes popover-group-fade {
     from { opacity: 0; transform: translateY(-4px); }
     to   { opacity: 1; transform: translateY(0); }
+  }
+  .popover-group-title {
+    animation: popover-group-fade 0.32s ease-out both;
+    animation-delay: calc(var(--g, 0) * 50ms + 60ms);
+  }
 
   /* ─── Soft pastel pill chips ─── */
   .pill-lavender { background: color-mix(in oklab, var(--color-lavender) 35%, white); color: oklch(0.3 0.12 295); }
@@ -765,12 +770,6 @@
     -webkit-background-clip: text; background-clip: text; color: transparent;
   }
 
-  /* Lime/gold plate already uses --gold token (now lime), keep alias */
+  /* Executive plate alias (kept for existing call sites) */
   .plate-lime { background-image: linear-gradient(160deg, oklch(0.86 0.09 258) 0%, oklch(0.74 0.13 262) 50%, oklch(0.64 0.15 270) 100%); }
-}
-
-  .popover-group-title {
-    animation: popover-group-fade 0.32s ease-out both;
-    animation-delay: calc(var(--g, 0) * 50ms + 60ms);
-  }
 }
