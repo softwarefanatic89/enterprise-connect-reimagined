@@ -600,7 +600,7 @@ function Section({
   right?: React.ReactNode; onRefresh?: () => void; lastSync?: number;
   children: React.ReactNode;
 }) {
-  const [, force] = useState(0);
+  const [ticks, force] = useState(0);
   useEffect(() => {
     if (!lastSync) return;
     const id = setInterval(() => force((v) => v + 1), 15000);
@@ -614,7 +614,11 @@ function Section({
           {label}
         </span>
         {lastSync && (
-          <span className="text-[9.5px] font-mono tabular-nums text-sidebar-muted/70" title={`Last sync ${new Date(lastSync).toLocaleTimeString()}`}>
+          <span
+            className="text-[9.5px] font-mono tabular-nums text-sidebar-muted/70"
+            suppressHydrationWarning
+            title={ticks >= 0 ? `Last sync ${new Date(lastSync).toLocaleTimeString()}` : undefined}
+          >
             · {relTime(lastSync)}
           </span>
         )}
