@@ -4,9 +4,10 @@ import {
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { LanguageMenu } from "./LanguageMenu";
+import { ViewPreferencesMenu } from "./ViewPreferencesMenu";
 
 
-export function TopBar() {
+export function TopBar({ onOpenCommandPalette }: { onOpenCommandPalette?: () => void }) {
   return (
     <header className="panel-dark relative z-20 flex h-14 shrink-0 items-center gap-3 border-b border-sidebar-border px-4">
       {/* Brand */}
@@ -29,8 +30,13 @@ export function TopBar() {
         <div className="relative">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-sidebar-muted" />
           <input
+            data-shortcut="search"
+            readOnly
+            onFocus={() => onOpenCommandPalette?.()}
+            onClick={() => onOpenCommandPalette?.()}
+            aria-label="Open global search"
             placeholder="Universal Search · User · AMS · PRJ · MOD · DPT · MSG ID"
-            className="h-9 w-full rounded-xl border border-sidebar-border bg-sidebar-surface pl-9 pr-16 font-mono text-[11.5px] tracking-wide outline-none transition-all placeholder:text-sidebar-muted/70 focus:border-gold/60 focus:ring-4 focus:ring-gold/10"
+            className="h-9 w-full cursor-pointer rounded-xl border border-sidebar-border bg-sidebar-surface pl-9 pr-16 font-mono text-[11.5px] tracking-wide outline-none transition-all placeholder:text-sidebar-muted/70 hover:border-gold/40 focus:border-gold/60 focus:ring-4 focus:ring-gold/10"
           />
           <kbd className="absolute right-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-0.5 rounded-md border border-sidebar-border bg-sidebar px-1.5 py-0.5 text-[10px] font-medium text-sidebar-muted">
             <Command className="h-2.5 w-2.5" /> K
@@ -56,6 +62,7 @@ export function TopBar() {
 
         <LanguageMenu />
 
+        <ViewPreferencesMenu />
 
         <div className="hidden items-center gap-1.5 rounded-lg border border-sidebar-border bg-sidebar-surface px-2 py-1 lg:flex">
           <Users className="h-3.5 w-3.5 text-gold" />
