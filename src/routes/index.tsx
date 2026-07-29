@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Menu, PanelRightOpen } from "lucide-react";
 import { Sidebar } from "@/components/chat/Sidebar";
 import { ChatView } from "@/components/chat/ChatView";
