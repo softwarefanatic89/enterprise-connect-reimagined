@@ -6,6 +6,7 @@ import { ChatView } from "@/components/chat/ChatView";
 import { DetailsPanel } from "@/components/chat/DetailsPanel";
 import { TopBar } from "@/components/chat/TopBar";
 import { ShortcutsLayer } from "@/components/chat/Shortcuts";
+import { CommandPalette, pushRecent } from "@/components/chat/CommandPalette";
 import { conversations, type Conversation } from "@/components/chat/data";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
@@ -32,13 +33,30 @@ function Index() {
   const [active, setActive] = useState<Conversation>(conversations[0]);
   const [navOpen, setNavOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && !e.shiftKey) {
+        e.preventDefault();
+        setPaletteOpen((o) => !o);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const selectConversation = (c: Conversation) => {
+    setActive(c);
+    pushRecent(c.id);
+  };
 
   return (
-    <div className="flex h-dvh w-screen flex-col overflow-hidden bg-mesh bg-background text-foreground">
-      <TopBar />
+    <div className="animate-page-in flex h-dvh w-screen flex-col overflow-hidden bg-mesh bg-background text-foreground">
+      <TopBar onOpenCommandPalette={() => setPaletteOpen(true)} />
       <div className="flex min-h-0 flex-1">
         {/* Left sidebar — inline from md+ */}
-        <Sidebar activeId={active.id} onSelect={setActive} />
+        <Sidebar activeId={active.id} onSelect={selectConversation} />
 
         {/* Chat area — full width on mobile */}
         <ChatView chat={active} />
@@ -77,7 +95,7 @@ function Index() {
           <Sidebar
             mobile
             activeId={active.id}
-            onSelect={setActive}
+            onSelect={selectConversation}
             onNavigate={() => setNavOpen(false)}
           />
         </SheetContent>
@@ -95,6 +113,12 @@ function Index() {
       </Sheet>
 
       <ShortcutsLayer />
+
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        onSelectConversation={selectConversation}
+      />
     </div>
   );
 }
