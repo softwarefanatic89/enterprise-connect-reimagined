@@ -5,6 +5,7 @@ import {
   Paperclip, Mic, Send, Image as ImageIcon, AtSign, Plus, Lock,
   Check, CheckCheck, Play, Smile, X, Wand2, FileText, Ticket,
   BarChart3, Calendar, Code2, MapPin, Camera, File, Zap, Film,
+  ArrowDown, UploadCloud, Loader2,
 } from "lucide-react";
 import {
   messages, ROLE, EMOTION, PRIORITY, SMART_REPLIES, REACTIONS,
