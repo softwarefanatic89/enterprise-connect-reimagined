@@ -45,15 +45,15 @@ export function ChatView({ chat }: { chat: Conversation }) {
 function ConversationHeader({ chat }: { chat: Conversation }) {
   const r = chat.role ? ROLE[chat.role] : null;
   return (
-    <header className="sticky top-0 z-10 flex items-center gap-3.5 border-b border-border bg-surface/95 px-6 py-3 backdrop-blur-xl">
-      <div className="relative">
-        <div className={`avatar-3d grid h-12 w-12 place-items-center rounded-[18px] border-2 ${r ? r.ring : "border-border"} ${r ? r.bg : "bg-surface"} text-[18px]`}>
+    <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-surface/95 px-3 py-2.5 backdrop-blur-xl sm:gap-3.5 sm:px-6 sm:py-3">
+      <div className="relative shrink-0">
+        <div className={`avatar-3d grid h-10 w-10 place-items-center rounded-[16px] border-2 sm:h-12 sm:w-12 sm:rounded-[18px] ${r ? r.ring : "border-border"} ${r ? r.bg : "bg-surface"} text-[18px]`}>
           <span className="emoji-3d emoji-xl">{r ? r.icon : <Hash className="h-5 w-5 text-muted-foreground" />}</span>
         </div>
         <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[--color-success] ring-2 ring-surface animate-pulse-ring" />
       </div>
 
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <h2 className="truncate font-mono text-[14.5px] font-bold tracking-wide">{chat.id}</h2>
           {chat.verified && <ShieldCheck className="h-3.5 w-3.5 text-[--color-success]" />}
@@ -61,7 +61,7 @@ function ConversationHeader({ chat }: { chat: Conversation }) {
             {chat.kind}
           </span>
         </div>
-        <div className="mt-0.5 flex items-center gap-2 text-[11px]">
+        <div className="mt-0.5 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px]">
           <span className="inline-flex items-center gap-1 font-semibold text-[--color-success]">
             <span className="h-1.5 w-1.5 rounded-full bg-[--color-success]" /> Online
           </span>
@@ -72,23 +72,23 @@ function ConversationHeader({ chat }: { chat: Conversation }) {
             <span className="text-muted-foreground/70">· 4 active</span>
           </span>
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-1 text-[10.5px]">
+        <div className="mt-1 hidden flex-wrap items-center gap-1 text-[10.5px] lg:flex">
           <Tag>{chat.department}</Tag>
           <Tag>{chat.module}</Tag>
           {chat.project && <Tag>{chat.project}</Tag>}
           {chat.ams && <Tag>{chat.ams}</Tag>}
         </div>
       </div>
-      <div className="ml-auto flex items-center gap-1">
-        <span className="mr-2 inline-flex items-center gap-1 rounded-full border border-[--color-success]/30 bg-[--color-success]/10 px-2 py-0.5 text-[10px] font-semibold text-[--color-success]">
+      <div className="ml-auto flex shrink-0 items-center gap-1">
+        <span className="mr-2 hidden items-center gap-1 whitespace-nowrap rounded-full border border-[--color-success]/30 bg-[--color-success]/10 px-2 py-0.5 text-[10px] font-semibold text-[--color-success] xl:inline-flex">
           <Lock className="h-2.5 w-2.5" /> E2E · Internal Only
         </span>
-        <HBtn label="Search in conversation"><Search className="h-4 w-4" /></HBtn>
+        <span className="hidden sm:contents"><HBtn label="Search in conversation"><Search className="h-4 w-4" /></HBtn></span>
         <HBtn label="Start voice call"><Phone className="h-4 w-4" /></HBtn>
-        <HBtn label="Start video call"><Video className="h-4 w-4" /></HBtn>
-        <HBtn label="Pinned messages"><Pin className="h-4 w-4" /></HBtn>
-        <HBtn label="Members"><Users className="h-4 w-4" /></HBtn>
-        <LanguageMenu scopeId={chat.id} scopeLabel={chat.id} />
+        <span className="hidden sm:contents"><HBtn label="Start video call"><Video className="h-4 w-4" /></HBtn></span>
+        <span className="hidden lg:contents"><HBtn label="Pinned messages"><Pin className="h-4 w-4" /></HBtn></span>
+        <span className="hidden lg:contents"><HBtn label="Members"><Users className="h-4 w-4" /></HBtn></span>
+        <span className="hidden md:contents"><LanguageMenu scopeId={chat.id} scopeLabel={chat.id} /></span>
         <HBtn label="More actions"><MoreHorizontal className="h-4 w-4" /></HBtn>
       </div>
     </header>
@@ -110,7 +110,7 @@ function HBtn({ children, label }: { children: React.ReactNode; label: string })
 
 function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="rounded-md border border-border bg-surface px-1.5 py-0.5 font-mono text-[9.5px] text-muted-foreground">
+    <span className="whitespace-nowrap rounded-md border border-border bg-surface px-1.5 py-0.5 font-mono text-[9.5px] text-muted-foreground">
       {children}
     </span>
   );
