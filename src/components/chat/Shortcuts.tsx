@@ -4,12 +4,14 @@ import { Keyboard, X, Search, MessageSquare, HelpCircle, Command } from "lucide-
 type Shortcut = { keys: string[]; label: string; icon: React.ComponentType<{ className?: string }> };
 
 const SHORTCUTS: Shortcut[] = [
-  { keys: ["⌘", "K"], label: "Focus chat search", icon: Search },
+  { keys: ["⌘", "K"], label: "Open command palette / global search", icon: Search },
   { keys: ["⌘", "⇧", "F"], label: "Focus message composer", icon: MessageSquare },
   { keys: ["⌘", "/"], label: "Toggle this help", icon: HelpCircle },
   { keys: ["Esc"], label: "Close menus / blur input", icon: X },
   { keys: ["Enter"], label: "Send message", icon: Command },
   { keys: ["⇧", "Enter"], label: "New line in message", icon: Command },
+  { keys: ["↑", "↓"], label: "Navigate conversation list", icon: Command },
+  { keys: ["J"], label: "Jump to latest message", icon: MessageSquare },
 ];
 
 function focusBySelector(sel: string) {
@@ -23,6 +25,8 @@ export function ShortcutsLayer() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    const onOpen = () => setOpen(true);
+    window.addEventListener("sv:shortcuts", onOpen);
     const onKey = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
       if (!mod) {
@@ -30,10 +34,7 @@ export function ShortcutsLayer() {
         return;
       }
       const k = e.key.toLowerCase();
-      if (k === "k" && !e.shiftKey) {
-        e.preventDefault();
-        focusBySelector('[data-shortcut="search"]');
-      } else if (k === "f" && e.shiftKey) {
+      if (k === "f" && e.shiftKey) {
         e.preventDefault();
         focusBySelector('[data-shortcut="composer"]');
       } else if (k === "/") {
@@ -42,7 +43,10 @@ export function ShortcutsLayer() {
       }
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("sv:shortcuts", onOpen);
+    };
   }, []);
 
   if (!open) {

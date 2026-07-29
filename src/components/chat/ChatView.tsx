@@ -5,6 +5,7 @@ import {
   Paperclip, Mic, Send, Image as ImageIcon, AtSign, Plus, Lock,
   Check, CheckCheck, Play, Smile, X, Wand2, FileText, Ticket,
   BarChart3, Calendar, Code2, MapPin, Camera, File, Zap, Film,
+  ArrowDown, UploadCloud, Loader2,
 } from "lucide-react";
 import {
   messages, ROLE, EMOTION, PRIORITY, SMART_REPLIES, REACTIONS,
@@ -147,6 +148,56 @@ function Transcript({ conversationId }: { conversationId: string }) {
   const [pickerFor, setPickerFor] = useState<string | null>(null);
   const [liveMsg, setLiveMsg] = useState("");
   const uidRef = useRef<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const [atBottom, setAtBottom] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [olderLoaded, setOlderLoaded] = useState(false);
+
+  // Skeleton screen on conversation switch (presentation only).
+  useEffect(() => {
+    setLoading(true);
+    const t = window.setTimeout(() => setLoading(false), 260);
+    return () => window.clearTimeout(t);
+  }, [conversationId]);
+
+  // Scroll position memory per conversation + jump-to-latest visibility.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || loading) return;
+    const key = `sv.scroll.${conversationId}`;
+    const saved = Number(window.sessionStorage.getItem(key) ?? NaN);
+    el.scrollTop = Number.isFinite(saved) ? saved : el.scrollHeight;
+
+    const onScroll = () => {
+      const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < 64;
+      setAtBottom(bottom);
+      window.sessionStorage.setItem(key, String(el.scrollTop));
+      if (el.scrollTop < 40 && !olderLoaded && !loadingOlder) {
+        setLoadingOlder(true);
+        window.setTimeout(() => { setLoadingOlder(false); setOlderLoaded(true); }, 500);
+      }
+    };
+    el.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [conversationId, loading, olderLoaded, loadingOlder]);
+
+  const jumpToLatest = () => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  };
+
+  // Keyboard: J jumps to latest when not typing.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+      if (e.key.toLowerCase() === "j" && !e.metaKey && !e.ctrlKey) jumpToLatest();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   // Load current session + initial reactions + realtime subscription
   useEffect(() => {
@@ -242,35 +293,105 @@ function Transcript({ conversationId }: { conversationId: string }) {
   };
 
 
+  const unreadIndex = Math.max(messages.length - 2, 1);
+
   return (
-    <div
-      className="scrollbar-thin flex-1 select-none overflow-y-auto px-6 py-6"
-      style={{ WebkitUserSelect: "none", userSelect: "none" }}
-      {...lockDown}
-    >
-      <div className="mx-auto flex max-w-4xl flex-col gap-1">
-        <SecurityBanner />
-        <DayDivider label="Today · Friday, June 19" />
-        {messages.map((m, i) => {
-          const prev = messages[i - 1];
-          const grouped = !!prev && prev.senderId === m.senderId && !m.reply;
-          return (
-            <Bubble
-              key={m.id}
-              m={m}
-              conversationId={conversationId}
-              grouped={grouped}
-              reactions={reactionMap[m.id] ?? []}
-              onToggle={(e) => toggle(m.id, e)}
-              burst={burst && burst.id === m.id ? burst : null}
-              pickerOpen={pickerFor === m.id}
-              onRequestPicker={(open) => setPickerFor(open ? m.id : null)}
-            />
-          );
-        })}
-        <TypingRow />
+    <div className="relative flex min-h-0 flex-1 flex-col">
+      <div
+        ref={scrollRef}
+        className="scrollbar-thin flex-1 select-none overflow-y-auto px-3 py-4 sm:px-6 sm:py-6"
+        style={{ WebkitUserSelect: "none", userSelect: "none", scrollBehavior: "smooth" }}
+        {...lockDown}
+      >
+        <div className="mx-auto flex max-w-4xl flex-col gap-1">
+          <SecurityBanner />
+
+          {(loadingOlder || !olderLoaded) && (
+            <div className="mb-2 flex items-center justify-center gap-2 text-[10.5px] text-muted-foreground">
+              {loadingOlder ? (
+                <>
+                  <Loader2 className="h-3 w-3 animate-spin" /> Loading earlier messages…
+                </>
+              ) : (
+                <span className="rounded-full border border-border bg-surface px-2.5 py-1">
+                  Scroll up to load earlier sealed records
+                </span>
+              )}
+            </div>
+          )}
+
+          {loading ? (
+            <TranscriptSkeleton />
+          ) : (
+            <>
+              <DayDivider label="Today · Friday, June 19" />
+              {messages.map((m, i) => {
+                const prev = messages[i - 1];
+                const grouped = !!prev && prev.senderId === m.senderId && !m.reply;
+                return (
+                  <div key={m.id}>
+                    {i === unreadIndex && <UnreadDivider count={messages.length - unreadIndex} />}
+                    <Bubble
+                      m={m}
+                      conversationId={conversationId}
+                      grouped={grouped && i !== unreadIndex}
+                      reactions={reactionMap[m.id] ?? []}
+                      onToggle={(e) => toggle(m.id, e)}
+                      burst={burst && burst.id === m.id ? burst : null}
+                      pickerOpen={pickerFor === m.id}
+                      onRequestPicker={(open) => setPickerFor(open ? m.id : null)}
+                    />
+                  </div>
+                );
+              })}
+              <TypingRow />
+            </>
+          )}
+          <div ref={bottomRef} />
+        </div>
+        <div aria-live="polite" aria-atomic="true" className="sr-only">{liveMsg}</div>
       </div>
-      <div aria-live="polite" aria-atomic="true" className="sr-only">{liveMsg}</div>
+
+      {!atBottom && !loading && (
+        <button
+          type="button"
+          onClick={jumpToLatest}
+          aria-label="Jump to latest message"
+          className="animate-notify-in ripple absolute bottom-4 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-2 text-[11.5px] font-semibold shadow-[var(--shadow-float)] transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/50 active:scale-95"
+        >
+          <ArrowDown className="h-3.5 w-3.5 text-primary" />
+          Jump to latest
+          <span className="rounded-full bg-primary px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-primary-foreground">2</span>
+        </button>
+      )}
+    </div>
+  );
+}
+
+function TranscriptSkeleton() {
+  return (
+    <div className="flex flex-col gap-5 py-4" aria-hidden="true">
+      {[0, 1, 2, 3].map((i) => (
+        <div key={i} className={`flex items-end gap-3 ${i % 2 ? "flex-row-reverse" : ""}`}>
+          <div className="skeleton h-10 w-10 shrink-0 rounded-full" />
+          <div className={`flex w-full max-w-[60%] flex-col gap-1.5 ${i % 2 ? "items-end" : ""}`}>
+            <div className="skeleton h-2.5 w-28 rounded-full" />
+            <div className="skeleton h-14 w-full rounded-[22px]" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function UnreadDivider({ count }: { count: number }) {
+  return (
+    <div className="my-4 flex items-center gap-3" role="separator" aria-label={`${count} unread messages`}>
+      <span className="h-px flex-1 bg-[--color-destructive]/35" />
+      <span className="rounded-full border border-[--color-destructive]/35 bg-[--color-destructive]/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-[--color-destructive]">
+        {count} unread
+      </span>
+      <span className="h-px flex-1 bg-[--color-destructive]/35" />
     </div>
   );
 }
@@ -286,7 +407,7 @@ function SecurityBanner() {
 
 function DayDivider({ label }: { label: string }) {
   return (
-    <div className="my-3 flex items-center justify-center">
+    <div className="date-sticky my-3 flex items-center justify-center">
       <span className="rounded-full border border-border bg-surface/70 px-3 py-1 text-[10.5px] font-medium uppercase tracking-[0.12em] text-muted-foreground backdrop-blur">
         {label}
       </span>
