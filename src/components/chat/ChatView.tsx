@@ -335,7 +335,7 @@ function Bubble({
           <div
             className={`grid h-10 w-10 place-items-center rounded-full text-[16px] shadow-[inset_0_1px_0_oklch(1_0_0/0.7),0_8px_18px_-8px_oklch(0.55_0.18_295/0.45)] ${
               out
-                ? "bg-gradient-to-br from-[oklch(0.92_0.17_118)] to-[oklch(0.82_0.18_115)] text-[oklch(0.25_0.06_265)]"
+                ? "bg-gradient-to-br from-[oklch(0.86_0.09_258)] to-[oklch(0.74_0.13_262)] text-[oklch(0.25_0.06_265)]"
                 : "bg-gradient-to-br from-[oklch(0.92_0.08_295)] to-[oklch(0.78_0.13_295)] text-white"
             }`}
           >
