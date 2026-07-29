@@ -770,3 +770,208 @@
   /* Executive plate alias (kept for existing call sites) */
   .plate-lime { background-image: linear-gradient(160deg, oklch(0.86 0.09 258) 0%, oklch(0.74 0.13 262) 50%, oklch(0.64 0.15 270) 100%); }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   ENTERPRISE UX LAYER — density, contrast, glass, motion
+   ══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* 8pt grid scale */
+  --space-1: 4px;  --space-2: 8px;  --space-3: 12px; --space-4: 16px;
+  --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px;
+
+  /* Motion guidelines — subtle & fast */
+  --motion-fast: 150ms;
+  --motion-base: 220ms;
+  --motion-slow: 300ms;
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Density (comfortable default) */
+  --density-row-y: 10px;
+  --density-gap: 12px;
+  --density-scale: 1;
+
+  /* Surface treatment (solid default) */
+  --glass-bg: var(--surface);
+  --glass-blur: 0px;
+  --glass-border: var(--border);
+}
+
+html[data-density="compact"] {
+  --density-row-y: 6px;
+  --density-gap: 8px;
+  --density-scale: 0.94;
+}
+
+html[data-surface="glass"] {
+  --glass-bg: color-mix(in oklab, var(--surface) 68%, transparent);
+  --glass-blur: 18px;
+  --glass-border: color-mix(in oklab, var(--foreground) 8%, transparent);
+}
+
+html[data-contrast="high"] {
+  --border: oklch(0.42 0.03 265);
+  --border-soft: oklch(0.55 0.03 265);
+  --muted-foreground: oklch(0.36 0.03 265);
+  --sidebar-muted: oklch(0.86 0.02 265);
+  --ring: oklch(0.45 0.22 258);
+}
+html[data-contrast="high"] :focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+html[data-motion="reduced"] *,
+html[data-motion="reduced"] *::before,
+html[data-motion="reduced"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ── Density-aware helpers ── */
+.density-row { padding-block: var(--density-row-y); }
+.density-gap { gap: var(--density-gap); }
+
+/* ── Glass / solid panel ── */
+.panel-adaptive {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border-color: var(--glass-border);
+}
+
+/* ── Visible focus ring for every interactive element ── */
+.focus-ring:focus-visible,
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ── Premium micro-animations ── */
+@keyframes sv-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-4px); }
+  40% { transform: translateX(4px); }
+  60% { transform: translateX(-2px); }
+  80% { transform: translateX(2px); }
+}
+.animate-shake { animation: sv-shake var(--motion-slow) var(--ease-out-soft) both; }
+
+@keyframes sv-success-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--success) 55%, transparent); }
+  100% { box-shadow: 0 0 0 12px color-mix(in oklab, var(--success) 0%, transparent); }
+}
+.animate-success-pulse { animation: sv-success-pulse 600ms var(--ease-out-soft) both; }
+
+@keyframes sv-notify-in {
+  from { opacity: 0; transform: translateX(16px) scale(0.98); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+.animate-notify-in { animation: sv-notify-in var(--motion-base) var(--ease-out-soft) both; }
+
+@keyframes sv-modal-scale {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-modal-scale { animation: sv-modal-scale var(--motion-base) var(--ease-spring) both; }
+
+@keyframes sv-drawer-slide {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.animate-drawer-slide { animation: sv-drawer-slide var(--motion-base) var(--ease-out-soft) both; }
+
+@keyframes sv-page-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-page-in { animation: sv-page-in var(--motion-slow) var(--ease-out-soft) both; }
+
+/* Card lift + hover glow */
+.card-lift {
+  transition: transform var(--motion-base) var(--ease-out-soft),
+              box-shadow var(--motion-base) var(--ease-out-soft);
+}
+.card-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-float);
+}
+.hover-glow { transition: box-shadow var(--motion-base) var(--ease-out-soft); }
+.hover-glow:hover { box-shadow: var(--shadow-glow); }
+
+/* Button ripple */
+.ripple { position: relative; overflow: hidden; }
+.ripple::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 8px; height: 8px;
+  border-radius: 999px;
+  background: color-mix(in oklab, currentColor 26%, transparent);
+  opacity: 0;
+  transform: scale(0);
+}
+.ripple:active::after {
+  animation: sv-ripple 480ms var(--ease-out-soft);
+}
+@keyframes sv-ripple {
+  0% { opacity: 0.45; transform: scale(0); }
+  100% { opacity: 0; transform: scale(24); }
+}
+
+/* Icon morph */
+.icon-morph { transition: transform var(--motion-base) var(--ease-spring), color var(--motion-fast) linear; }
+.icon-morph:hover { transform: rotate(-8deg) scale(1.12); }
+
+/* Progress bar */
+@keyframes sv-progress-stripe {
+  from { background-position: 0 0; }
+  to { background-position: 24px 0; }
+}
+.progress-stripe {
+  background-image: linear-gradient(
+    45deg,
+    color-mix(in oklab, var(--primary-foreground) 22%, transparent) 25%, transparent 25%,
+    transparent 50%, color-mix(in oklab, var(--primary-foreground) 22%, transparent) 50%,
+    color-mix(in oklab, var(--primary-foreground) 22%, transparent) 75%, transparent 75%
+  );
+  background-size: 24px 24px;
+  animation: sv-progress-stripe 700ms linear infinite;
+}
+
+/* Mention + search highlight */
+.mention-chip {
+  border-radius: 6px;
+  padding: 0 4px;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in oklab, var(--primary) 12%, transparent);
+}
+.search-hit {
+  border-radius: 4px;
+  padding: 0 2px;
+  background: color-mix(in oklab, var(--warning) 34%, transparent);
+  color: inherit;
+}
+
+/* Sticky date separator */
+.date-sticky {
+  position: sticky;
+  top: 8px;
+  z-index: 5;
+}
