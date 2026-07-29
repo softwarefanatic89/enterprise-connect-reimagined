@@ -1,0 +1,1058 @@
+import { useEffect, useRef, useState } from "react";
+import {
+  Search, Pin, ShieldCheck, MoreHorizontal, Phone, Video, Users, Hash,
+  Reply, Bookmark, Languages, Volume2, Sparkles, Quote,
+  Paperclip, Mic, Send, Image as ImageIcon, AtSign, Plus, Lock,
+  Check, CheckCheck, Play, Smile, X, Wand2, FileText, Ticket,
+  BarChart3, Calendar, Code2, MapPin, Camera, File, Zap, Film,
+} from "lucide-react";
+import {
+  messages, ROLE, EMOTION, PRIORITY, SMART_REPLIES, REACTIONS,
+  type Message, type Conversation, type WorkStatus,
+} from "./data";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { TranslatedText } from "./TranslatedText";
+import { LanguageMenu } from "./LanguageMenu";
+import { ExpressionPicker } from "./ExpressionPicker";
+
+
+/* Lock down clipboard / context-menu on the chat surface */
+const lockDown = {
+  onCopy: (e: React.ClipboardEvent) => e.preventDefault(),
+  onCut: (e: React.ClipboardEvent) => e.preventDefault(),
+  onPaste: (e: React.ClipboardEvent) => e.preventDefault(),
+  onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  onDragStart: (e: React.DragEvent) => e.preventDefault(),
+};
+
+export const WORKSPACE_ID = "WS-SV-PRIME";
+
+export function ChatView({ chat }: { chat: Conversation }) {
+  return (
+    <section className="flex h-full min-w-0 flex-1 flex-col canvas-mesh">
+      <ConversationHeader chat={chat} />
+      <div key={chat.id} className="flex min-h-0 flex-1 flex-col animate-chat-swap">
+        <Transcript conversationId={chat.id} />
+        <SmartComposer chat={chat} />
+      </div>
+    </section>
+  );
+}
+
+/* ─────────── HEADER ─────────── */
+
+function ConversationHeader({ chat }: { chat: Conversation }) {
+  const r = chat.role ? ROLE[chat.role] : null;
+  return (
+    <header className="sticky top-0 z-10 flex items-center gap-3.5 border-b border-border bg-surface/95 px-6 py-3 backdrop-blur-xl">
+      <div className="relative">
+        <div className={`avatar-3d grid h-12 w-12 place-items-center rounded-[18px] border-2 ${r ? r.ring : "border-border"} ${r ? r.bg : "bg-surface"} text-[18px]`}>
+          <span className="emoji-3d emoji-xl">{r ? r.icon : <Hash className="h-5 w-5 text-muted-foreground" />}</span>
+        </div>
+        <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-[--color-success] ring-2 ring-surface animate-pulse-ring" />
+      </div>
+
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5">
+          <h2 className="truncate font-mono text-[14.5px] font-bold tracking-wide">{chat.id}</h2>
+          {chat.verified && <ShieldCheck className="h-3.5 w-3.5 text-[--color-success]" />}
+          <span className="rounded-md border border-border bg-surface px-1.5 py-0.5 text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">
+            {chat.kind}
+          </span>
+        </div>
+        <div className="mt-0.5 flex items-center gap-2 text-[11px]">
+          <span className="inline-flex items-center gap-1 font-semibold text-[--color-success]">
+            <span className="h-1.5 w-1.5 rounded-full bg-[--color-success]" /> Online
+          </span>
+          <span className="text-muted-foreground">·</span>
+          <span className="inline-flex items-center gap-1 text-muted-foreground">
+            <Users className="h-3 w-3" />
+            <span className="font-mono font-semibold tabular-nums text-foreground">12</span> members
+            <span className="text-muted-foreground/70">· 4 active</span>
+          </span>
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-1 text-[10.5px]">
+          <Tag>{chat.department}</Tag>
+          <Tag>{chat.module}</Tag>
+          {chat.project && <Tag>{chat.project}</Tag>}
+          {chat.ams && <Tag>{chat.ams}</Tag>}
+        </div>
+      </div>
+      <div className="ml-auto flex items-center gap-1">
+        <span className="mr-2 inline-flex items-center gap-1 rounded-full border border-[--color-success]/30 bg-[--color-success]/10 px-2 py-0.5 text-[10px] font-semibold text-[--color-success]">
+          <Lock className="h-2.5 w-2.5" /> E2E · Internal Only
+        </span>
+        <HBtn label="Search in conversation"><Search className="h-4 w-4" /></HBtn>
+        <HBtn label="Start voice call"><Phone className="h-4 w-4" /></HBtn>
+        <HBtn label="Start video call"><Video className="h-4 w-4" /></HBtn>
+        <HBtn label="Pinned messages"><Pin className="h-4 w-4" /></HBtn>
+        <HBtn label="Members"><Users className="h-4 w-4" /></HBtn>
+        <LanguageMenu scopeId={chat.id} scopeLabel={chat.id} />
+        <HBtn label="More actions"><MoreHorizontal className="h-4 w-4" /></HBtn>
+      </div>
+    </header>
+  );
+}
+
+function HBtn({ children, label }: { children: React.ReactNode; label: string }) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-all hover:bg-surface-hover hover:text-foreground active:scale-95 focus-visible:outline-none"
+    >
+      {children}
+    </button>
+  );
+}
+
+function Tag({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-md border border-border bg-surface px-1.5 py-0.5 font-mono text-[9.5px] text-muted-foreground">
+      {children}
+    </span>
+  );
+}
+
+/* ─────────── TRANSCRIPT ─────────── */
+
+type ReactionState = { emoji: string; count: number; mine?: boolean };
+
+type ReactionRow = { message_id: string; emoji: string; user_id: string };
+
+function rowsToMap(rows: ReactionRow[], uid: string | null): Record<string, ReactionState[]> {
+  const map: Record<string, Map<string, ReactionState>> = {};
+  for (const r of rows) {
+    const bucket = (map[r.message_id] ??= new Map());
+    const existing = bucket.get(r.emoji);
+    if (existing) {
+      existing.count += 1;
+      if (uid && r.user_id === uid) existing.mine = true;
+    } else {
+      bucket.set(r.emoji, { emoji: r.emoji, count: 1, mine: !!uid && r.user_id === uid });
+    }
+  }
+  const out: Record<string, ReactionState[]> = {};
+  for (const [k, v] of Object.entries(map)) out[k] = Array.from(v.values());
+  return out;
+}
+
+function Transcript({ conversationId }: { conversationId: string }) {
+  const [reactionMap, setReactionMap] = useState<Record<string, ReactionState[]>>(() =>
+    Object.fromEntries(messages.map((m) => [m.id, m.reactions ?? []])),
+  );
+  const [burst, setBurst] = useState<{ id: string; emoji: string; key: number } | null>(null);
+  const [pickerFor, setPickerFor] = useState<string | null>(null);
+  const [liveMsg, setLiveMsg] = useState("");
+  const uidRef = useRef<string | null>(null);
+
+  // Load current session + initial reactions + realtime subscription
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async (uid: string | null) => {
+      uidRef.current = uid;
+      const ids = messages.map((m) => m.id);
+      const { data, error } = await supabase
+        .from("message_reactions")
+        .select("message_id, emoji, user_id")
+        .in("message_id", ids);
+      if (cancelled) return;
+      if (error) return; // silently fall back to seed data
+      const fresh = rowsToMap((data ?? []) as ReactionRow[], uid);
+      setReactionMap((prev) => {
+        const merged: Record<string, ReactionState[]> = { ...prev };
+        for (const id of ids) merged[id] = fresh[id] ?? [];
+        return merged;
+      });
+    };
+
+    supabase.auth.getSession().then(({ data }) => {
+      load(data.session?.user.id ?? null);
+    });
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      load(session?.user.id ?? null);
+    });
+
+    const channel = supabase
+      .channel("message_reactions_stream")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "message_reactions" },
+        () => load(uidRef.current),
+      )
+      .subscribe();
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const applyLocal = (msgId: string, emoji: string, add: boolean) => {
+    setReactionMap((prev) => {
+      const list = prev[msgId] ?? [];
+      const idx = list.findIndex((r) => r.emoji === emoji);
+      let next: ReactionState[];
+      if (add) {
+        if (idx === -1) next = [...list, { emoji, count: 1, mine: true }];
+        else next = list.map((x, i) => (i === idx ? { ...x, count: x.count + 1, mine: true } : x));
+      } else {
+        if (idx === -1) return prev;
+        const c = list[idx].count - 1;
+        next = c <= 0
+          ? list.filter((_, i) => i !== idx)
+          : list.map((x, i) => (i === idx ? { ...x, count: c, mine: false } : x));
+      }
+      return { ...prev, [msgId]: next };
+    });
+  };
+
+  const toggle = async (msgId: string, emoji: string) => {
+    const uid = uidRef.current;
+    const current = reactionMap[msgId] ?? [];
+    const mine = current.find((r) => r.emoji === emoji)?.mine;
+    const add = !mine;
+
+    // Optimistic update
+    applyLocal(msgId, emoji, add);
+    if (add) setBurst({ id: msgId, emoji, key: Date.now() });
+    setLiveMsg(add ? `Added ${emoji} reaction` : `Removed ${emoji} reaction`);
+
+    if (!uid) {
+      // Roll back — not signed in
+      applyLocal(msgId, emoji, !add);
+      toast.error("Sign in required", { description: "You need to sign in to react to messages." });
+      return;
+    }
+
+    const { error } = add
+      ? await supabase.from("message_reactions").insert({ message_id: msgId, emoji, user_id: uid })
+      : await supabase.from("message_reactions").delete()
+          .eq("message_id", msgId).eq("emoji", emoji).eq("user_id", uid);
+
+    if (error) {
+      applyLocal(msgId, emoji, !add); // rollback
+      toast.error("Reaction failed", { description: error.message });
+    }
+  };
+
+
+  return (
+    <div
+      className="scrollbar-thin flex-1 select-none overflow-y-auto px-6 py-6"
+      style={{ WebkitUserSelect: "none", userSelect: "none" }}
+      {...lockDown}
+    >
+      <div className="mx-auto flex max-w-4xl flex-col gap-1">
+        <SecurityBanner />
+        <DayDivider label="Today · Friday, June 19" />
+        {messages.map((m, i) => {
+          const prev = messages[i - 1];
+          const grouped = !!prev && prev.senderId === m.senderId && !m.reply;
+          return (
+            <Bubble
+              key={m.id}
+              m={m}
+              conversationId={conversationId}
+              grouped={grouped}
+              reactions={reactionMap[m.id] ?? []}
+              onToggle={(e) => toggle(m.id, e)}
+              burst={burst && burst.id === m.id ? burst : null}
+              pickerOpen={pickerFor === m.id}
+              onRequestPicker={(open) => setPickerFor(open ? m.id : null)}
+            />
+          );
+        })}
+        <TypingRow />
+      </div>
+      <div aria-live="polite" aria-atomic="true" className="sr-only">{liveMsg}</div>
+    </div>
+  );
+}
+
+function SecurityBanner() {
+  return (
+    <div className="mx-auto mb-3 flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-[10.5px] text-muted-foreground">
+      <Lock className="h-3 w-3 text-[--color-success]" />
+      Messages are sealed inside Software Vala. Copy, forward, screenshot helpers and external share are disabled.
+    </div>
+  );
+}
+
+function DayDivider({ label }: { label: string }) {
+  return (
+    <div className="my-3 flex items-center justify-center">
+      <span className="rounded-full border border-border bg-surface/70 px-3 py-1 text-[10.5px] font-medium uppercase tracking-[0.12em] text-muted-foreground backdrop-blur">
+        {label}
+      </span>
+    </div>
+  );
+}
+
+/* ─────────── BUBBLE ─────────── */
+
+function Bubble({
+  m, conversationId, grouped, reactions, onToggle, burst, pickerOpen, onRequestPicker,
+}: {
+  m: Message;
+  conversationId: string;
+  grouped: boolean;
+  reactions: ReactionState[];
+  onToggle: (emoji: string) => void;
+  burst: { id: string; emoji: string; key: number } | null;
+  pickerOpen: boolean;
+  onRequestPicker: (open: boolean) => void;
+}) {
+  const out = !!m.out;
+  const role = ROLE[m.role];
+
+  // Long-press (mobile) → open picker
+  const pressTimer = useRef<number | null>(null);
+  const startPress = () => {
+    if (pressTimer.current) window.clearTimeout(pressTimer.current);
+    pressTimer.current = window.setTimeout(() => onRequestPicker(true), 450);
+  };
+  const cancelPress = () => {
+    if (pressTimer.current) { window.clearTimeout(pressTimer.current); pressTimer.current = null; }
+  };
+
+  return (
+    <div
+      className={`group relative flex items-end gap-3 ${out ? "flex-row-reverse" : ""} ${grouped ? "mt-1" : "mt-5"}`}
+      onTouchStart={startPress}
+      onTouchEnd={cancelPress}
+      onTouchMove={cancelPress}
+      onTouchCancel={cancelPress}
+    >
+      {/* Lavender circle avatar (reference style) */}
+      <div className={`w-10 shrink-0 ${grouped ? "opacity-0" : ""}`}>
+        {!grouped && (
+          <div
+            className={`grid h-10 w-10 place-items-center rounded-full text-[16px] shadow-[inset_0_1px_0_oklch(1_0_0/0.7),0_8px_18px_-8px_oklch(0.55_0.18_295/0.45)] ${
+              out
+                ? "bg-gradient-to-br from-[oklch(0.92_0.17_118)] to-[oklch(0.82_0.18_115)] text-[oklch(0.25_0.06_265)]"
+                : "bg-gradient-to-br from-[oklch(0.92_0.08_295)] to-[oklch(0.78_0.13_295)] text-white"
+            }`}
+          >
+            <span className="emoji-3d">{role.icon}</span>
+          </div>
+        )}
+      </div>
+
+      <div className={`flex max-w-[72%] min-w-0 flex-col ${out ? "items-end" : "items-start"}`}>
+        {/* Minimal inline meta */}
+        {!grouped && (
+          <div className={`mb-1.5 flex items-center gap-1.5 px-1 text-[10.5px] ${out ? "flex-row-reverse" : ""}`}>
+            <span className="font-mono font-bold text-foreground">{m.senderId}</span>
+            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">{m.time}</span>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider ${
+              PRIORITY[m.priority].cls
+            }`}>{PRIORITY[m.priority].label}</span>
+          </div>
+        )}
+
+        {m.pinned && (
+          <div className={`mb-1 flex items-center gap-1 text-[10px] text-muted-foreground ${out ? "flex-row-reverse" : ""}`}>
+            <Pin className="h-3 w-3" /> Pinned
+          </div>
+        )}
+
+        {/* Card */}
+        <div className="relative w-full">
+          <div
+            className={`animate-pop-in relative overflow-hidden text-[13.5px] leading-relaxed transition-all duration-300 ${
+              out
+                ? "rounded-[22px] rounded-br-[8px] bg-[oklch(0.18_0.025_280)] text-white shadow-[0_14px_32px_-14px_oklch(0.18_0.025_280/0.55),inset_0_1px_0_oklch(1_0_0/0.08)] hover:-translate-y-0.5"
+                : "rounded-[22px] rounded-bl-[8px] bg-white text-foreground ring-1 ring-[oklch(0.92_0.012_290)] shadow-[0_10px_28px_-14px_oklch(0.45_0.18_290/0.28),inset_0_1px_0_oklch(1_0_0/0.9)] hover:-translate-y-0.5 hover:shadow-[0_18px_40px_-14px_oklch(0.45_0.18_290/0.38)]"
+            }`}
+          >
+            {/* Reply quote */}
+            {m.reply && (
+              <div className={`mx-3 mt-3 flex items-start gap-2 rounded-xl px-2.5 py-1.5 ${
+                out
+                  ? "bg-white/10 border-l-2 border-[oklch(0.88_0.18_118)]"
+                  : `border-l-2 ${ROLE[m.reply.role].ring} ${ROLE[m.reply.role].bg}`
+              }`}>
+                <Quote className={`mt-0.5 h-3 w-3 shrink-0 ${out ? "text-white/60" : "text-muted-foreground"}`} />
+                <div className="min-w-0">
+                  <div className={`font-mono text-[10px] font-bold ${out ? "text-[oklch(0.88_0.18_118)]" : ROLE[m.reply.role].text}`}>{m.reply.id}</div>
+                  <div className={`truncate text-[11.5px] ${out ? "text-white/75" : "text-muted-foreground"}`}>{m.reply.text}</div>
+                </div>
+              </div>
+            )}
+
+            {/* Body */}
+            <div className="px-4 pt-3">
+              {m.emotion && !out && <EmotionChip s={m.emotion} />}
+              {m.text && (
+                <TranslatedText
+                  text={m.text}
+                  msgId={m.id}
+                  conversationId={conversationId}
+                  className="mt-1.5 block"
+                  toneClass={out ? "text-white/70" : "text-muted-foreground"}
+                />
+              )}
+
+              {m.attachment?.kind === "image" && <ImageAttachment id={m.attachment.id} size={m.attachment.size!} />}
+              {m.attachment?.kind === "file" && <FileAttachment id={m.attachment.id} size={m.attachment.size!} />}
+              {m.attachment?.kind === "voice" && <VoiceAttachment id={m.attachment.id} duration={m.attachment.duration!} bars={m.attachment.waveform!} />}
+            </div>
+
+            <BubbleFooter m={m} out={out} />
+          </div>
+
+          <ReactionDock out={out} onPick={(e) => { onToggle(e); onRequestPicker(false); }} forceOpen={pickerOpen} onDismiss={() => onRequestPicker(false)} />
+        </div>
+
+        {reactions.length > 0 && (
+          <div
+            className={`mt-1.5 flex flex-wrap gap-1 ${out ? "justify-end" : ""}`}
+            role="group"
+            aria-label="Message reactions"
+          >
+            {reactions.map((r) => {
+              const isBursting = burst?.emoji === r.emoji;
+              const label = r.mine
+                ? `Remove ${r.emoji} reaction, ${r.count} ${r.count === 1 ? "person" : "people"}`
+                : `Add ${r.emoji} reaction, currently ${r.count} ${r.count === 1 ? "person" : "people"}`;
+              return (
+                <button
+                  key={r.emoji}
+                  type="button"
+                  onClick={() => onToggle(r.emoji)}
+                  aria-pressed={!!r.mine}
+                  aria-label={label}
+                  className={`reaction-chip group/rx relative flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11.5px] transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.55_0.2_295)] focus-visible:ring-offset-1 ${
+                    r.mine
+                      ? "border-[oklch(0.88_0.18_118)] bg-[oklch(0.95_0.16_118)]/50 text-foreground shadow-[0_2px_10px_-4px_oklch(0.85_0.18_118/0.6)]"
+                      : "border-border bg-white text-foreground hover:border-[oklch(0.55_0.2_295)]/40 hover:bg-[oklch(0.98_0.02_295)]"
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    key={isBursting ? burst!.key : "static"}
+                    className={`emoji-3d inline-block transition-transform duration-200 group-hover/rx:scale-125 ${isBursting ? "animate-[reaction-pop_0.5s_cubic-bezier(0.34,1.56,0.64,1)]" : ""}`}
+                  >
+                    {r.emoji}
+                  </span>
+                  <span key={r.count} className="animate-[badge-pop_0.3s_cubic-bezier(0.34,1.56,0.64,1)] font-semibold tabular-nums">
+                    {r.count}
+                  </span>
+                </button>
+              );
+            })}
+            <button
+              type="button"
+              onClick={() => onRequestPicker(true)}
+              aria-label="Open reaction picker"
+              aria-haspopup="menu"
+              aria-expanded={pickerOpen}
+              className="grid h-6 w-6 place-items-center rounded-full border border-dashed border-border bg-white text-muted-foreground transition-all hover:scale-110 hover:border-solid hover:bg-surface-hover hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.55_0.2_295)]"
+            >
+              <Smile className="h-3 w-3" aria-hidden="true" />
+            </button>
+          </div>
+        )}
+
+        <AuditStrip m={m} conversationId={conversationId} out={out} />
+      </div>
+    </div>
+  );
+}
+
+/* ─────────── AUDIT STRIP (enterprise record chip) ─────────── */
+
+function AuditStrip({ m, conversationId, out }: { m: Message; conversationId: string; out: boolean }) {
+  const readLabel = m.read === "read" ? "Delivered · Read" : m.read === "delivered" ? "Delivered" : "Sent";
+  const details = [
+    { k: "Message ID", v: m.id },
+    { k: "Conversation ID", v: conversationId },
+    { k: "Workspace ID", v: WORKSPACE_ID },
+    { k: "Timestamp", v: `${m.time} · Today` },
+    { k: "Delivery", v: readLabel },
+    { k: "Integrity", v: "SHA-256 verified" },
+    { k: "Security", v: "AES-256 · E2E sealed" },
+    { k: "Audit", v: "Available · Immutable record" },
+  ];
+  return (
+    <div className={`group/audit relative mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-surface/70 px-2 py-0.5 font-mono text-[9.5px] text-muted-foreground backdrop-blur ${out ? "self-end" : "self-start"}`}>
+      <ShieldCheck className="h-2.5 w-2.5 text-[--color-success]" />
+      <span className="truncate font-semibold text-foreground/80">{m.id}</span>
+      <span className="text-border">·</span>
+      <span className="truncate">{conversationId}</span>
+      <span className="text-border">·</span>
+      <Lock className="h-2.5 w-2.5 text-[--color-success]" aria-label="Sealed" />
+      <span className="text-[--color-success]">{readLabel === "Delivered · Read" ? "READ" : readLabel === "Delivered" ? "DLV" : "SENT"}</span>
+      <span className="text-border">·</span>
+      <FileText className="h-2.5 w-2.5" />
+      <span className="uppercase tracking-wider">Audit</span>
+
+      {/* Hover / focus reveal — full record without cluttering the default state */}
+      <div className={`pointer-events-none absolute ${out ? "right-0" : "left-0"} top-full z-30 mt-1 hidden min-w-[260px] rounded-xl border border-border bg-popover p-2.5 text-[10px] text-foreground shadow-[0_20px_50px_-20px_oklch(0.2_0.05_265/0.45)] group-hover/audit:block group-focus-within/audit:block`}>
+        <div className="mb-1 flex items-center gap-1.5 border-b border-border pb-1.5 text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">
+          <ShieldCheck className="h-3 w-3 text-[--color-success]" /> Enterprise Record
+        </div>
+        <dl className="grid grid-cols-[100px_1fr] gap-x-2 gap-y-1 font-mono">
+          {details.map((d) => (
+            <div key={d.k} className="contents">
+              <dt className="text-muted-foreground">{d.k}</dt>
+              <dd className="truncate font-semibold text-foreground">{d.v}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </div>
+  );
+}
+
+
+
+function BubbleHeader({ m, out }: { m: Message; out: boolean }) {
+  const role = ROLE[m.role];
+  const prio = PRIORITY[m.priority];
+  return (
+    <div className={`mb-1 flex flex-wrap items-center gap-1 text-[10.5px] ${out ? "flex-row-reverse" : ""}`}>
+      <span className={`inline-flex items-center gap-1 rounded-md border ${role.ring} ${role.bg} px-1.5 py-0.5 font-bold uppercase ${role.text}`}>
+        <span className="emoji-3d text-[12px] leading-none">{role.icon}</span>
+        {role.label}
+      </span>
+      <Tag>{m.department}</Tag>
+      <Tag>{m.module}</Tag>
+      <span className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-bold uppercase ${prio.cls}`}>
+        {prio.label}
+      </span>
+      <span className={`inline-flex items-center gap-1 rounded-md border ${EMOTION[m.status].cls} px-1.5 py-0.5 font-semibold`}>
+        {m.status}
+      </span>
+      <span className="font-mono font-bold text-foreground">{m.senderId}</span>
+      <span className="text-muted-foreground">· {m.time}</span>
+    </div>
+  );
+}
+
+function EmotionChip({ s }: { s: WorkStatus }) {
+  const e = EMOTION[s];
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-semibold ${e.cls}`}>
+      <span className="emoji-3d">{e.icon}</span>
+      {e.label}
+    </span>
+  );
+}
+
+function BubbleFooter({ m, out }: { m: Message; out: boolean }) {
+  return (
+    <div className={`mt-2 flex items-center justify-between gap-2 border-t px-2 py-1 ${
+      out ? "border-white/10 bg-white/[0.04]" : "border-border-soft bg-surface-hover/30"
+    }`}>
+      <div className="flex items-center gap-0.5 opacity-50 transition-opacity duration-200 group-hover:opacity-100">
+        <FBtn icon={<Languages className="h-3.5 w-3.5" />} label="Translate" out={out} />
+        <FBtn icon={<Volume2 className="h-3.5 w-3.5" />} label="Listen" out={out} />
+        <FBtn icon={<Sparkles className="h-3.5 w-3.5" />} label="AI" out={out} accent />
+        <span className={`mx-1 h-3 w-px ${out ? "bg-white/15" : "bg-border"}`} />
+        <FBtn icon={<Reply className="h-3.5 w-3.5" />} label="Reply" out={out} />
+        <FBtn icon={<MoreHorizontal className="h-3.5 w-3.5" />} label="More" out={out} />
+      </div>
+      {out && (
+        <span key={m.read} className={`tick-in inline-flex items-center gap-1 text-[10px] ${out ? "text-white/70" : "text-muted-foreground"}`}>
+          {m.read === "read" ? <CheckCheck className="h-3.5 w-3.5 text-[oklch(0.88_0.18_118)]" /> : <Check className="h-3.5 w-3.5" />}
+          {m.read}
+        </span>
+      )}
+    </div>
+  );
+}
+
+
+function FBtn({ icon, label, accent, out }: { icon: React.ReactNode; label: string; accent?: boolean; out?: boolean }) {
+  return (
+    <button
+      title={label}
+      className={`group/btn flex h-7 items-center gap-1 rounded-md px-1.5 transition-all ${
+        out
+          ? `text-white/60 hover:bg-white/10 ${accent ? "hover:text-[oklch(0.88_0.18_118)]" : "hover:text-white"}`
+          : `text-muted-foreground hover:bg-surface ${accent ? "hover:text-[oklch(0.55_0.2_295)]" : "hover:text-foreground"}`
+      }`}
+    >
+      {icon}
+      <span className="hidden text-[10.5px] font-medium group-hover/btn:inline">{label}</span>
+    </button>
+  );
+}
+
+
+function ReactionDock({
+  out, onPick, forceOpen, onDismiss,
+}: {
+  out: boolean;
+  onPick: (emoji: string) => void;
+  forceOpen?: boolean;
+  onDismiss?: () => void;
+}) {
+  const dockRef = useRef<HTMLDivElement | null>(null);
+
+  // Autofocus first button when opened via long-press / picker toggle
+  useEffect(() => {
+    if (forceOpen && dockRef.current) {
+      const first = dockRef.current.querySelector<HTMLButtonElement>("button");
+      first?.focus();
+    }
+  }, [forceOpen]);
+
+  // Dismiss on outside tap / Escape when force-opened
+  useEffect(() => {
+    if (!forceOpen) return;
+    const onDoc = (e: MouseEvent | TouchEvent) => {
+      if (dockRef.current && !dockRef.current.contains(e.target as Node)) onDismiss?.();
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onDismiss?.(); };
+    document.addEventListener("mousedown", onDoc);
+    document.addEventListener("touchstart", onDoc);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDoc);
+      document.removeEventListener("touchstart", onDoc);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [forceOpen, onDismiss]);
+
+  const openCls = forceOpen
+    ? "pointer-events-auto translate-y-0 opacity-100"
+    : "pointer-events-none translate-y-2 opacity-0 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 focus-within:pointer-events-auto focus-within:translate-y-0 focus-within:opacity-100";
+
+  return (
+    <div
+      ref={dockRef}
+      role="menu"
+      aria-label="Quick reactions"
+      className={`absolute -top-5 ${out ? "left-2" : "right-2"} z-10 flex items-center gap-0.5 rounded-full border border-border bg-popover px-1.5 py-1 shadow-[0_18px_40px_-14px_oklch(0.35_0.12_290/0.5),0_2px_0_oklch(1_0_0/0.9)_inset] backdrop-blur-xl transition-all duration-200 ease-out ${openCls}`}
+    >
+      {REACTIONS.slice(0, 7).map((e, i) => (
+        <button
+          key={e}
+          type="button"
+          role="menuitem"
+          onClick={() => onPick(e)}
+          style={{ transitionDelay: `${i * 20}ms` }}
+          className="reaction-dock-emoji grid h-8 w-8 origin-bottom place-items-center rounded-full text-[19px] transition-transform duration-200 hover:-translate-y-1 hover:scale-[1.35] active:scale-125 focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.55_0.2_295)]"
+          aria-label={`React with ${e}`}
+        >
+          <span className="emoji-3d" aria-hidden="true">{e}</span>
+        </button>
+      ))}
+      <div className="mx-0.5 h-5 w-px bg-border" aria-hidden="true" />
+      <button
+        type="button"
+        aria-label="More reactions"
+        className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-all hover:scale-110 hover:bg-surface-hover hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-[oklch(0.55_0.2_295)]"
+      >
+        <Plus className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
+    </div>
+  );
+}
+
+/* ─────────── ATTACHMENTS (ID-only labels) ─────────── */
+
+function ImageAttachment({ id, size }: { id: string; size: string }) {
+  return (
+    <div className="mt-2 overflow-hidden rounded-xl border border-border">
+      <div className="relative h-44 w-full bg-gradient-to-br from-sky-500/15 via-violet-500/10 to-emerald-400/15">
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="rounded-2xl border border-border bg-surface/80 px-3 py-1.5 font-mono text-[11px] font-semibold backdrop-blur">
+            {id} · {size}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FileAttachment({ id, size }: { id: string; size: string }) {
+  return (
+    <div className="mt-2 flex items-center gap-3 rounded-xl border border-border bg-surface-hover px-2.5 py-2">
+      <div className="grid h-10 w-10 place-items-center rounded-lg bg-primary-soft text-primary">
+        <FileText className="h-4 w-4" />
+      </div>
+      <div className="min-w-0">
+        <div className="truncate font-mono text-[12.5px] font-bold">{id}</div>
+        <div className="text-[10.5px] text-muted-foreground">{size} · sealed file · in-app view only</div>
+      </div>
+    </div>
+  );
+}
+
+function VoiceAttachment({ id, duration, bars }: { id: string; duration: string; bars: number[] }) {
+  return (
+    <div className="mt-2 flex items-center gap-3 rounded-xl border border-border bg-surface-hover px-2.5 py-2">
+      <button className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-gradient-bubble text-bubble-out-foreground">
+        <Play className="h-4 w-4 translate-x-px" />
+      </button>
+      <div className="flex h-9 flex-1 items-end gap-[2px]">
+        {bars.map((b, i) => (
+          <span key={i} className="w-[2.5px] rounded-full bg-foreground/40" style={{ height: `${b}px` }} />
+        ))}
+      </div>
+      <div className="text-right">
+        <div className="font-mono text-[10.5px] font-semibold">{id}</div>
+        <div className="text-[10px] text-muted-foreground tabular-nums">{duration}</div>
+      </div>
+    </div>
+  );
+}
+
+function TypingRow() {
+  return (
+    <div className="mt-3 flex items-end gap-3">
+      <div className={`avatar-3d grid h-10 w-10 place-items-center rounded-2xl border-2 ${ROLE.QA.ring} ${ROLE.QA.bg} text-[15px]`}>
+        <span className="emoji-3d emoji-xl">{ROLE.QA.icon}</span>
+      </div>
+
+      <div className="bubble-gloss rounded-2xl rounded-bl-md px-4 py-3 ring-1 ring-border">
+        <div className="tg-typing"><span /><span /><span /></div>
+      </div>
+      <span className="pb-1 font-mono text-[10.5px] text-muted-foreground">QA-001284 is typing…</span>
+    </div>
+  );
+}
+
+/* ─────────── SMART COMPOSER ─────────── */
+
+function SmartComposer({ chat }: { chat: Conversation }) {
+  const [value, setValue] = useState("");
+  const [emotion, setEmotion] = useState<WorkStatus>("CODING");
+  const [showEmotions, setShowEmotions] = useState(false);
+  const [translate, setTranslate] = useState(false);
+  const [sendState, setSendState] = useState<"idle" | "sending" | "sent">("idle");
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => { ref.current?.focus(); }, []);
+  useEffect(() => { setValue(""); ref.current?.focus(); }, [chat.id]);
+
+  const max = 2000;
+  const left = max - value.length;
+
+  const handleSend = () => {
+    if (!value.trim() || sendState !== "idle") return;
+    setSendState("sending");
+    setTimeout(() => {
+      setSendState("sent");
+      setValue("");
+      setTimeout(() => setSendState("idle"), 900);
+    }, 420);
+  };
+
+  return (
+    <div className="border-t border-border bg-surface px-6 py-3.5">
+      <div className="mx-auto max-w-4xl space-y-2.5">
+        {/* AI Suggestion floating panel */}
+        <AiSuggestionPanel onPick={(t) => { setValue(t); ref.current?.focus(); }} />
+
+        {/* Composer card — solid premium surface */}
+        <div className="rounded-[18px] border border-border bg-surface shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_8px_24px_-12px_oklch(0.2_0.04_265/0.18)] transition-all focus-within:border-gold/50 focus-within:shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_0_0_4px_oklch(0.78_0.12_80/0.08),0_12px_32px_-12px_oklch(0.2_0.04_265/0.22)]">
+
+          {/* Emotion drawer (revealed via long-press / More) */}
+          {showEmotions && (
+            <div className="animate-slide-down flex flex-wrap gap-1 border-b border-border-soft px-3 py-2">
+              {(Object.keys(EMOTION) as WorkStatus[]).map((k) => (
+                <button
+                  key={k}
+                  onClick={() => { setEmotion(k); setShowEmotions(false); }}
+                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-semibold transition-all ${EMOTION[k].cls} hover:scale-105`}
+                >
+                  <span className="emoji-3d">{EMOTION[k].icon}</span>
+                  {EMOTION[k].label}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Single row · minimal first experience: + Emoji 📎 🎤 [Message] Send */}
+          <div
+            className="relative flex items-end gap-1 px-2 py-1.5"
+            onContextMenu={(e) => { e.preventDefault(); setShowEmotions((s) => !s); }}
+          >
+            {/* 1. More (+) — hides AI, Templates, Poll, Calendar, Code, Location, GIF, Sticker, Camera, Document, @ */}
+            <MorePopover onPick={(t) => { setValue((v) => v + t); ref.current?.focus(); }} />
+
+            {/* 2. Role-aware expressions */}
+            <ExpressionPicker onPick={(e) => { setValue((v) => v + e); ref.current?.focus(); }} />
+
+            {/* 3. Attachment */}
+            <CBtn label="Attach"><Paperclip className="h-[18px] w-[18px]" /></CBtn>
+
+            {/* 4. Voice */}
+            <CBtn label="Voice note"><Mic className="h-[18px] w-[18px]" /></CBtn>
+
+            {/* 5. Message Box */}
+            <textarea
+              ref={ref}
+              data-shortcut="composer"
+              rows={1}
+              value={value}
+              onChange={(e) => setValue(e.target.value.slice(0, max))}
+              onPaste={(e) => e.preventDefault()}
+              onCopy={(e) => e.preventDefault()}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSend(); }
+              }}
+              placeholder={`Message ${chat.id}`}
+              className="mx-1 max-h-40 min-h-[40px] flex-1 resize-none bg-transparent px-2 py-2 text-[13.5px] leading-relaxed outline-none placeholder:text-muted-foreground"
+            />
+
+            {/* 6. Translate toggle — subtle */}
+            <button
+              onClick={() => setTranslate((t) => !t)}
+              title="Translate before send"
+              className={`press grid h-9 w-9 place-items-center rounded-lg transition-all ${
+                translate ? "bg-gold/15 text-gold" : "text-muted-foreground/70 hover:bg-surface-hover hover:text-foreground"
+              }`}
+            >
+              <Languages className="h-[18px] w-[18px]" />
+            </button>
+
+            {/* 7. Send */}
+            <button
+              onClick={handleSend}
+              disabled={!value.trim() || sendState !== "idle"}
+              className={`ml-1 grid h-10 w-10 place-items-center rounded-xl transition-all duration-300 active:scale-90 disabled:opacity-50 ${
+                sendState === "sent"
+                  ? "bg-[--color-success] text-white shadow-[var(--shadow-glow)]"
+                  : value.trim() || sendState === "sending"
+                  ? "bg-gradient-bubble text-bubble-out-foreground shadow-[var(--shadow-glow)] hover:scale-105"
+                  : "bg-surface-hover text-muted-foreground"
+              }`}
+            >
+              {sendState === "sent" ? (
+                <CheckCheck key="sent" className="send-success h-4 w-4" />
+              ) : sendState === "sending" ? (
+                <span className="tg-typing"><span /><span /><span /></span>
+              ) : (
+                <Send key="send" className="send-success h-4 w-4 -translate-x-px" />
+              )}
+            </button>
+          </div>
+
+          {/* Minimal meta strip — hidden affordances surfaced subtly */}
+          <div className="flex items-center justify-between border-t border-border-soft px-3 py-1.5 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <button
+                onClick={() => setShowEmotions((s) => !s)}
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 font-semibold transition-all hover:border-gold/40 hover:text-foreground"
+                title="Set emotion / status"
+              >
+                <span className="emoji-3d">{EMOTION[emotion].icon}</span>
+                {EMOTION[emotion].label}
+              </button>
+              <span className="opacity-60">·</span>
+              <kbd className="rounded border border-border bg-surface px-1">⏎</kbd> send
+              <kbd className="rounded border border-border bg-surface px-1">⇧⏎</kbd> new line
+              <kbd className="rounded border border-border bg-surface px-1">⌘K</kbd> more
+            </span>
+            <span className="flex items-center gap-2">
+              <Lock className="h-2.5 w-2.5" /> Sealed · {chat.id}
+              <span className={`font-mono ${left < 100 ? "text-[--color-warning]" : ""}`}>{value.length}/{max}</span>
+            </span>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AiSuggestionPanel({ onPick }: { onPick: (t: string) => void }) {
+  const [hidden, setHidden] = useState(false);
+  if (hidden) return null;
+  return (
+    <div className="flex items-center gap-2 rounded-2xl border border-gold/30 bg-gradient-to-r from-gold/[0.08] via-transparent to-gold/[0.04] px-3 py-2 shadow-[var(--shadow-elegant)]">
+      <div className="flex shrink-0 items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-wider text-gold">
+        <Sparkles className="h-3.5 w-3.5" /> AI Smart Replies
+      </div>
+      <div className="scrollbar-thin flex flex-1 items-center gap-1.5 overflow-x-auto">
+        {SMART_REPLIES.map((t) => (
+          <button
+            key={t}
+            onClick={() => onPick(t)}
+            className="shrink-0 rounded-full border border-border bg-surface px-3 py-1 text-[11.5px] font-medium transition-all hover:-translate-y-0.5 hover:border-gold/50 hover:bg-gold/10"
+          >
+            {t}
+          </button>
+        ))}
+      </div>
+      <button onClick={() => setHidden(true)} className="grid h-6 w-6 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-surface-hover hover:text-foreground">
+        <X className="h-3.5 w-3.5" />
+      </button>
+    </div>
+  );
+}
+
+function CBtn({ children, accent, label }: { children: React.ReactNode; accent?: boolean; label?: string }) {
+  return (
+    <button title={label} className={`press grid h-9 w-9 place-items-center rounded-lg transition-all active:scale-95 ${accent ? "text-gold hover:bg-gold/15" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"}`}>
+      {children}
+    </button>
+  );
+}
+
+function ChipBtn({ children, active, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[10.5px] transition-all ${
+        active ? "border-gold/40 bg-gold/15 text-gold" : "border-border bg-surface text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* Sticker icon (lucide doesn't have a clean rounded one) */
+function Sticker() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]">
+      <path d="M15.5 3H8a5 5 0 0 0-5 5v8a5 5 0 0 0 5 5h7l6-6V8a5 5 0 0 0-5-5Z" />
+      <path d="M15 21v-3a3 3 0 0 1 3-3h3" />
+    </svg>
+  );
+}
+
+/* "+" More popover — hides advanced tools (AI, Templates, GIF, Sticker, Camera, Code, Poll, etc.) */
+function MorePopover({ onPick }: { onPick: (insert: string) => void }) {
+  const [open, setOpen] = useState(false);
+  type Item = {
+    icon: React.ReactNode;
+    label: string;
+    hint?: string;
+    accent?: "ai" | "live" | "create";
+    insert?: string;
+  };
+  const groups: { title: string; items: Item[] }[] = [
+    {
+      title: "Intelligence",
+      items: [
+        { icon: <Wand2 className="h-4 w-4" />, label: "AI Suggest", hint: "Draft reply", accent: "ai" },
+        { icon: <Sparkles className="h-4 w-4" />, label: "Quick Action", hint: "Workflow", accent: "ai" },
+        { icon: <FileText className="h-4 w-4" />, label: "Template", hint: "Saved replies" },
+        { icon: <Zap className="h-4 w-4" />, label: "Snippet", hint: "Insert", insert: "/" },
+      ],
+    },
+    {
+      title: "Create",
+      items: [
+        { icon: <BarChart3 className="h-4 w-4" />, label: "Poll", hint: "Collect votes", accent: "create" },
+        { icon: <Calendar className="h-4 w-4" />, label: "Calendar", hint: "Schedule" },
+        { icon: <Ticket className="h-4 w-4" />, label: "AMS Task", hint: "Create ticket", accent: "create" },
+        { icon: <Code2 className="h-4 w-4" />, label: "Code Block", hint: "Syntax", insert: "\n```\n\n```\n" },
+      ],
+    },
+    {
+      title: "Attach",
+      items: [
+        { icon: <ImageIcon className="h-4 w-4" />, label: "Photo", hint: "From device" },
+        { icon: <File className="h-4 w-4" />, label: "Document", hint: "Any file" },
+        { icon: <Camera className="h-4 w-4" />, label: "Camera", hint: "Capture", accent: "live" },
+        { icon: <Film className="h-4 w-4" />, label: "GIF", hint: "Library" },
+      ],
+    },
+    {
+      title: "Live",
+      items: [
+        { icon: <Sticker />, label: "Sticker", hint: "Brand pack" },
+        { icon: <MapPin className="h-4 w-4" />, label: "Location", hint: "Share", accent: "live" },
+        { icon: <Mic className="h-4 w-4" />, label: "Voice", hint: "Record" },
+        { icon: <AtSign className="h-4 w-4" />, label: "Mention", hint: "Tag user", insert: "@" },
+      ],
+    },
+  ];
+
+  const accentRing: Record<NonNullable<Item["accent"]>, string> = {
+    ai: "ring-1 ring-gold/40 bg-gold/10 text-gold",
+    live: "ring-1 ring-[--color-success]/40 bg-[--color-success]/10 text-[--color-success]",
+    create: "ring-1 ring-primary/40 bg-primary/10 text-primary",
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        title="More tools"
+        className={`press grid h-9 w-9 place-items-center rounded-lg transition-all duration-300 ${
+          open ? "bg-gold/15 text-gold rotate-45 scale-110" : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+        }`}
+      >
+        <Plus className="h-[18px] w-[18px]" />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-20 animate-fade-in-up" style={{ animationDuration: "180ms" }} onClick={() => setOpen(false)} />
+          <div className="popover-spring-in absolute bottom-12 left-0 z-30 w-[380px] overflow-hidden rounded-2xl border border-border bg-popover shadow-[0_20px_60px_-12px_oklch(0.2_0.04_265/0.35),0_8px_24px_-8px_oklch(0.2_0.04_265/0.2)]">
+            <div className="flex items-center justify-between border-b border-border/60 bg-gradient-to-r from-gold/[0.06] via-transparent to-transparent px-3 py-2.5">
+              <div className="flex items-center gap-1.5">
+                <span className="grid h-5 w-5 place-items-center rounded-md bg-gold/15 text-gold">
+                  <Plus className="h-3 w-3" />
+                </span>
+                <span className="text-[11px] font-bold tracking-wide">More tools</span>
+              </div>
+              <span className="text-[9.5px] font-bold uppercase tracking-wider text-muted-foreground">⌘K</span>
+            </div>
+            <div className="max-h-[440px] overflow-y-auto p-2.5">
+              {groups.map((g, gi) => {
+                let cursor = gi * 4;
+                return (
+                  <div key={g.title} className="mb-2.5 last:mb-0">
+                    <div
+                      className="popover-group-title px-2 py-1 text-[9.5px] font-bold uppercase tracking-[0.14em] text-muted-foreground"
+                      style={{ ["--g" as never]: gi }}
+                    >
+                      {g.title}
+                    </div>
+                    <div className="grid grid-cols-4 gap-1">
+                      {g.items.map((it) => {
+                        const i = cursor++;
+                        return (
+                          <button
+                            key={it.label}
+                            onClick={() => { if (it.insert) onPick(it.insert); setOpen(false); }}
+                            style={{ ["--i" as never]: i }}
+                            className="popover-item group flex flex-col items-center gap-1.5 rounded-xl px-1.5 py-2.5 text-center transition-all duration-200 hover:-translate-y-0.5 hover:bg-surface-hover"
+                          >
+                            <span
+                              className={`grid h-10 w-10 place-items-center rounded-xl bg-surface shadow-[inset_0_1px_0_oklch(1_0_0/0.6),0_2px_6px_-2px_oklch(0.2_0.04_265/0.15)] transition-all duration-300 group-hover:scale-110 group-hover:-rotate-3 group-hover:shadow-[inset_0_1px_0_oklch(1_0_0/0.8),0_8px_18px_-6px_oklch(0.55_0.18_264/0.35)] ${
+                                it.accent ? accentRing[it.accent] : "text-foreground"
+                              }`}
+                            >
+                              {it.icon}
+                            </span>
+                            <span className="text-[10px] font-semibold leading-tight">{it.label}</span>
+                            {it.hint && (
+                              <span className="text-[8.5px] font-medium uppercase tracking-wider text-muted-foreground">
+                                {it.hint}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="flex items-center justify-between border-t border-border/60 bg-surface/40 px-3 py-1.5 text-[9.5px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1"><Lock className="h-2.5 w-2.5" /> Sealed · E2E</span>
+              <span className="font-semibold">Software Vala™</span>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
