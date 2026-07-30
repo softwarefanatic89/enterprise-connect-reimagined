@@ -124,6 +124,22 @@ type ReactionState = { emoji: string; count: number; mine?: boolean };
 type ReactionRow = { message_id: string; emoji: string; user_id: string };
 
 function rowsToMap(rows: ReactionRow[], uid: string | null): Record<string, ReactionState[]> {
+  return rowsToMapImpl(rows, uid);
+}
+
+/** Minutes between two "HH:MM" stamps; large number when unparseable. */
+function minutesBetween(a: string, b: string): number {
+  const parse = (t: string) => {
+    const m = /^(\d{1,2}):(\d{2})/.exec(t.trim());
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+  };
+  const x = parse(a);
+  const y = parse(b);
+  if (x === null || y === null) return Number.POSITIVE_INFINITY;
+  return Math.abs(y - x);
+}
+
+function rowsToMapImpl(rows: ReactionRow[], uid: string | null): Record<string, ReactionState[]> {
   const map: Record<string, Map<string, ReactionState>> = {};
   for (const r of rows) {
     const bucket = (map[r.message_id] ??= new Map());
