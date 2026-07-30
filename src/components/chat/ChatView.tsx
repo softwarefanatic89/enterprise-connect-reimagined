@@ -124,6 +124,22 @@ type ReactionState = { emoji: string; count: number; mine?: boolean };
 type ReactionRow = { message_id: string; emoji: string; user_id: string };
 
 function rowsToMap(rows: ReactionRow[], uid: string | null): Record<string, ReactionState[]> {
+  return rowsToMapImpl(rows, uid);
+}
+
+/** Minutes between two "HH:MM" stamps; large number when unparseable. */
+function minutesBetween(a: string, b: string): number {
+  const parse = (t: string) => {
+    const m = /^(\d{1,2}):(\d{2})/.exec(t.trim());
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null;
+  };
+  const x = parse(a);
+  const y = parse(b);
+  if (x === null || y === null) return Number.POSITIVE_INFINITY;
+  return Math.abs(y - x);
+}
+
+function rowsToMapImpl(rows: ReactionRow[], uid: string | null): Record<string, ReactionState[]> {
   const map: Record<string, Map<string, ReactionState>> = {};
   for (const r of rows) {
     const bucket = (map[r.message_id] ??= new Map());
@@ -151,6 +167,7 @@ function Transcript({ conversationId }: { conversationId: string }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const [atBottom, setAtBottom] = useState(true);
+  const [unseenBelow, setUnseenBelow] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [olderLoaded, setOlderLoaded] = useState(false);
@@ -174,6 +191,17 @@ function Transcript({ conversationId }: { conversationId: string }) {
       const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < 64;
       setAtBottom(bottom);
       window.sessionStorage.setItem(key, String(el.scrollTop));
+      if (bottom) {
+        setUnseenBelow(0);
+      } else {
+        const viewportBottom = el.getBoundingClientRect().bottom;
+        const nodes = el.querySelectorAll<HTMLElement>("[data-message]");
+        let below = 0;
+        nodes.forEach((n) => {
+          if (n.getBoundingClientRect().top > viewportBottom - 8) below += 1;
+        });
+        setUnseenBelow(below);
+      }
       if (el.scrollTop < 40 && !olderLoaded && !loadingOlder) {
         setLoadingOlder(true);
         window.setTimeout(() => { setLoadingOlder(false); setOlderLoaded(true); }, 500);
@@ -327,9 +355,14 @@ function Transcript({ conversationId }: { conversationId: string }) {
               <DayDivider label="Today · Friday, June 19" />
               {messages.map((m, i) => {
                 const prev = messages[i - 1];
-                const grouped = !!prev && prev.senderId === m.senderId && !m.reply;
+                const grouped =
+                  !!prev &&
+                  prev.senderId === m.senderId &&
+                  prev.out === m.out &&
+                  !m.reply &&
+                  minutesBetween(prev.time, m.time) <= 5;
                 return (
-                  <div key={m.id}>
+                  <div key={m.id} data-message={m.id}>
                     {i === unreadIndex && <UnreadDivider count={messages.length - unreadIndex} />}
                     <Bubble
                       m={m}
@@ -355,13 +388,17 @@ function Transcript({ conversationId }: { conversationId: string }) {
       {!atBottom && !loading && (
         <button
           type="button"
-          onClick={jumpToLatest}
-          aria-label="Jump to latest message"
+          onClick={() => { setUnseenBelow(0); jumpToLatest(); }}
+          aria-label={unseenBelow > 0 ? `${unseenBelow} new messages, jump to latest` : "Jump to latest message"}
           className="animate-notify-in ripple absolute bottom-4 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-2 text-[11.5px] font-semibold shadow-[var(--shadow-float)] transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/50 active:scale-95"
         >
           <ArrowDown className="h-3.5 w-3.5 text-primary" />
-          Jump to latest
-          <span className="rounded-full bg-primary px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-primary-foreground">2</span>
+          {unseenBelow > 0 ? "New messages" : "Jump to latest"}
+          {unseenBelow > 0 && (
+            <span className="rounded-full bg-primary px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-primary-foreground">
+              {unseenBelow}
+            </span>
+          )}
         </button>
       )}
     </div>
@@ -444,15 +481,19 @@ function Bubble({
 
   return (
     <div
-      className={`group relative flex items-end gap-3 ${out ? "flex-row-reverse" : ""} ${grouped ? "mt-1" : "mt-5"}`}
+      className={`group relative flex items-end gap-3 ${out ? "flex-row-reverse" : ""} ${grouped ? "mt-0.5" : "mt-6"}`}
       onTouchStart={startPress}
       onTouchEnd={cancelPress}
       onTouchMove={cancelPress}
       onTouchCancel={cancelPress}
     >
       {/* Lavender circle avatar (reference style) */}
-      <div className={`w-10 shrink-0 ${grouped ? "opacity-0" : ""}`}>
-        {!grouped && (
+      <div className="grid w-10 shrink-0 place-items-center">
+        {grouped ? (
+          <span className="pb-2 font-mono text-[9.5px] tabular-nums text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+            {m.time}
+          </span>
+        ) : (
           <div
             className={`grid h-10 w-10 place-items-center rounded-full text-[16px] shadow-[inset_0_1px_0_oklch(1_0_0/0.7),0_8px_18px_-8px_oklch(0.55_0.18_295/0.45)] ${
               out
