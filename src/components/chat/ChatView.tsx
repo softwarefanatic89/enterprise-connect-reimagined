@@ -339,9 +339,14 @@ function Transcript({ conversationId }: { conversationId: string }) {
               <DayDivider label="Today · Friday, June 19" />
               {messages.map((m, i) => {
                 const prev = messages[i - 1];
-                const grouped = !!prev && prev.senderId === m.senderId && !m.reply;
+                const grouped =
+                  !!prev &&
+                  prev.senderId === m.senderId &&
+                  prev.out === m.out &&
+                  !m.reply &&
+                  minutesBetween(prev.time, m.time) <= 5;
                 return (
-                  <div key={m.id}>
+                  <div key={m.id} data-message={m.id}>
                     {i === unreadIndex && <UnreadDivider count={messages.length - unreadIndex} />}
                     <Bubble
                       m={m}
