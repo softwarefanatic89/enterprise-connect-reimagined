@@ -481,15 +481,19 @@ function Bubble({
 
   return (
     <div
-      className={`group relative flex items-end gap-3 ${out ? "flex-row-reverse" : ""} ${grouped ? "mt-1" : "mt-5"}`}
+      className={`group relative flex items-end gap-3 ${out ? "flex-row-reverse" : ""} ${grouped ? "mt-0.5" : "mt-6"}`}
       onTouchStart={startPress}
       onTouchEnd={cancelPress}
       onTouchMove={cancelPress}
       onTouchCancel={cancelPress}
     >
       {/* Lavender circle avatar (reference style) */}
-      <div className={`w-10 shrink-0 ${grouped ? "opacity-0" : ""}`}>
-        {!grouped && (
+      <div className="grid w-10 shrink-0 place-items-center">
+        {grouped ? (
+          <span className="pb-2 font-mono text-[9.5px] tabular-nums text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+            {m.time}
+          </span>
+        ) : (
           <div
             className={`grid h-10 w-10 place-items-center rounded-full text-[16px] shadow-[inset_0_1px_0_oklch(1_0_0/0.7),0_8px_18px_-8px_oklch(0.55_0.18_295/0.45)] ${
               out
