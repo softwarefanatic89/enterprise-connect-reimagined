@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TeamsRouteImport } from './routes/teams'
 import { Route as ChatManagerRouteImport } from './routes/chat-manager'
 import { Route as ChannelsRouteImport } from './routes/channels'
 import { Route as CallsRouteImport } from './routes/calls'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TeamsRoute = TeamsRouteImport.update({
+  id: '/teams',
+  path: '/teams',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChatManagerRoute = ChatManagerRouteImport.update({
   id: '/chat-manager',
   path: '/chat-manager',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/calls': typeof CallsRoute
   '/channels': typeof ChannelsRoute
   '/chat-manager': typeof ChatManagerRoute
+  '/teams': typeof TeamsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/calls': typeof CallsRoute
   '/channels': typeof ChannelsRoute
   '/chat-manager': typeof ChatManagerRoute
+  '/teams': typeof TeamsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/calls': typeof CallsRoute
   '/channels': typeof ChannelsRoute
   '/chat-manager': typeof ChatManagerRoute
+  '/teams': typeof TeamsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calls' | '/channels' | '/chat-manager'
+  fullPaths: '/' | '/calls' | '/channels' | '/chat-manager' | '/teams'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calls' | '/channels' | '/chat-manager'
-  id: '__root__' | '/' | '/calls' | '/channels' | '/chat-manager'
+  to: '/' | '/calls' | '/channels' | '/chat-manager' | '/teams'
+  id: '__root__' | '/' | '/calls' | '/channels' | '/chat-manager' | '/teams'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +76,18 @@ export interface RootRouteChildren {
   CallsRoute: typeof CallsRoute
   ChannelsRoute: typeof ChannelsRoute
   ChatManagerRoute: typeof ChatManagerRoute
+  TeamsRoute: typeof TeamsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/teams': {
+      id: '/teams'
+      path: '/teams'
+      fullPath: '/teams'
+      preLoaderRoute: typeof TeamsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chat-manager': {
       id: '/chat-manager'
       path: '/chat-manager'
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   CallsRoute: CallsRoute,
   ChannelsRoute: ChannelsRoute,
   ChatManagerRoute: ChatManagerRoute,
+  TeamsRoute: TeamsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
