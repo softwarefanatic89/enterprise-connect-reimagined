@@ -151,6 +151,7 @@ function Transcript({ conversationId }: { conversationId: string }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const [atBottom, setAtBottom] = useState(true);
+  const [unseenBelow, setUnseenBelow] = useState(0);
   const [loading, setLoading] = useState(true);
   const [loadingOlder, setLoadingOlder] = useState(false);
   const [olderLoaded, setOlderLoaded] = useState(false);
@@ -174,6 +175,17 @@ function Transcript({ conversationId }: { conversationId: string }) {
       const bottom = el.scrollHeight - el.scrollTop - el.clientHeight < 64;
       setAtBottom(bottom);
       window.sessionStorage.setItem(key, String(el.scrollTop));
+      if (bottom) {
+        setUnseenBelow(0);
+      } else {
+        const viewportBottom = el.getBoundingClientRect().bottom;
+        const nodes = el.querySelectorAll<HTMLElement>("[data-message]");
+        let below = 0;
+        nodes.forEach((n) => {
+          if (n.getBoundingClientRect().top > viewportBottom - 8) below += 1;
+        });
+        setUnseenBelow(below);
+      }
       if (el.scrollTop < 40 && !olderLoaded && !loadingOlder) {
         setLoadingOlder(true);
         window.setTimeout(() => { setLoadingOlder(false); setOlderLoaded(true); }, 500);
