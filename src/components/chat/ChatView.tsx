@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Search, Pin, ShieldCheck, MoreHorizontal, Phone, Video, Users, Hash,
   Reply, Bookmark, Languages, Volume2, Sparkles, Quote,
   Paperclip, Mic, Send, Image as ImageIcon, AtSign, Plus, Lock,
   Check, CheckCheck, Play, Smile, X, Wand2, FileText, Ticket,
   BarChart3, Calendar, Code2, MapPin, Camera, File, Zap, Film,
-  ArrowDown, UploadCloud, Loader2,
+  ArrowDown, UploadCloud, Loader2, Users2,
 } from "lucide-react";
 import {
-  messages, ROLE, EMOTION, PRIORITY, SMART_REPLIES, REACTIONS,
+  messages, conversations, ROLE, EMOTION, PRIORITY, SMART_REPLIES, REACTIONS,
   type Message, type Conversation, type WorkStatus,
 } from "./data";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,28 +16,140 @@ import { toast } from "sonner";
 import { TranslatedText } from "./TranslatedText";
 import { LanguageMenu } from "./LanguageMenu";
 import { ExpressionPicker } from "./ExpressionPicker";
-
-
-/* Lock down clipboard / context-menu on the chat surface */
-const lockDown = {
-  onCopy: (e: React.ClipboardEvent) => e.preventDefault(),
-  onCut: (e: React.ClipboardEvent) => e.preventDefault(),
-  onPaste: (e: React.ClipboardEvent) => e.preventDefault(),
-  onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
-  onDragStart: (e: React.DragEvent) => e.preventDefault(),
-};
+import { MessageActionBar, type MessageActionHandlers } from "./MessageActions";
+import { ThreadPanel, ThreadTeaser, type ThreadReply } from "./ThreadPanel";
+import { MessageSearchDialog } from "./MessageSearch";
+import { PinnedPanel, StarredPanel } from "./StarredPinnedPanel";
+import {
+  RichTextToolbar, MentionPopover, RichBody, LinkPreviewCard, VideoPreviewCard,
+  type MentionEntity,
+} from "./RichTextToolbar";
 
 export const WORKSPACE_ID = "WS-SV-PRIME";
+
+const SEED_THREADS: Record<string, ThreadReply[]> = {
+  "MSG-100004": [
+    { id: "T-1", senderId: "DEV-004521", role: "DEV", time: "10:31", text: "Which two edge cases exactly? Share trace IDs when ready." },
+    { id: "T-2", senderId: "QA-001284", role: "QA", time: "10:33", text: "Socket reconnect + presence flap under packet loss. Repro is flaky, ~40%." },
+  ],
+};
 
 export function ChatView({ chat }: { chat: Conversation }) {
   return (
     <section className="flex h-full min-w-0 flex-1 flex-col canvas-mesh">
-      <ConversationHeader chat={chat} />
-      <div key={chat.id} className="flex min-h-0 flex-1 flex-col animate-chat-swap">
-        <Transcript conversationId={chat.id} />
+      <ConversationRoot key={chat.id} chat={chat} />
+    </section>
+  );
+}
+
+function ConversationRoot({ chat }: { chat: Conversation }) {
+  const [msgs, setMsgs] = useState<Message[]>(() => messages.map((m) => ({ ...m })));
+  const [editedIds, setEditedIds] = useState<Set<string>>(new Set());
+  const [starred, setStarred] = useState<Set<string>>(new Set());
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(
+    () => new Set(messages.filter((m) => m.pinned).map((m) => m.id)),
+  );
+  const [threads, setThreads] = useState<Record<string, ThreadReply[]>>(SEED_THREADS);
+  const [threadFor, setThreadFor] = useState<string | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [editing, setEditing] = useState<{ id: string; value: string } | null>(null);
+
+  const forwardTargets = useMemo(() => conversations.map((c) => c.id).filter((id) => id !== chat.id), [chat.id]);
+
+  const scrollToMessage = (id: string) => {
+    const el = document.querySelector(`[data-message="${id}"]`);
+    el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    el?.classList.add("animate-pop-in");
+  };
+
+  const makeHandlers = (m: Message): MessageActionHandlers => ({
+    canEdit: !!m.out,
+    starred: starred.has(m.id),
+    pinned: pinnedIds.has(m.id),
+    forwardTargets,
+    onReplyInThread: () => setThreadFor(m.id),
+    onEdit: () => setEditing({ id: m.id, value: m.text ?? "" }),
+    onDelete: () => setMsgs((prev) => prev.filter((x) => x.id !== m.id)),
+    onForward: (target) => toast.message(`Forwarded to ${target}`, { description: m.text?.slice(0, 60) }),
+    onCopyText: () => { navigator.clipboard?.writeText(m.text ?? ""); toast.success("Copied to clipboard"); },
+    onCopyLink: () => { navigator.clipboard?.writeText(`${window.location.origin}/#${chat.id}/${m.id}`); toast.success("Permalink copied"); },
+    onStar: () => setStarred((prev) => {
+      const next = new Set(prev);
+      next.has(m.id) ? next.delete(m.id) : next.add(m.id);
+      return next;
+    }),
+    onPin: () => setPinnedIds((prev) => {
+      const next = new Set(prev);
+      next.has(m.id) ? next.delete(m.id) : next.add(m.id);
+      return next;
+    }),
+    onQuote: () => toast.message("Quoted in composer", { description: m.text?.slice(0, 60) }),
+    onReact: () => {},
+  });
+
+  const pinnedMsgs = msgs.filter((m) => pinnedIds.has(m.id));
+  const starredMsgs = msgs.filter((m) => starred.has(m.id));
+  const activeThread = msgs.find((m) => m.id === threadFor) ?? null;
+
+  return (
+    <>
+      <ConversationHeader
+        chat={chat}
+        pinnedMsgs={pinnedMsgs}
+        starredMsgs={starredMsgs}
+        onJump={scrollToMessage}
+        onOpenSearch={() => setSearchOpen(true)}
+      />
+      <div className="flex min-h-0 flex-1 flex-col animate-chat-swap">
+        <Transcript
+          conversationId={chat.id}
+          msgs={msgs}
+          editedIds={editedIds}
+          starred={starred}
+          pinnedIds={pinnedIds}
+          threads={threads}
+          editing={editing}
+          onEditingChange={(v) => setEditing((e) => (e ? { ...e, value: v } : e))}
+          onSaveEdit={() => {
+            if (!editing) return;
+            setMsgs((prev) => prev.map((x) => (x.id === editing.id ? { ...x, text: editing.value } : x)));
+            setEditedIds((prev) => new Set(prev).add(editing.id));
+            setEditing(null);
+          }}
+          onCancelEdit={() => setEditing(null)}
+          makeHandlers={makeHandlers}
+          onOpenThread={setThreadFor}
+        />
         <SmartComposer chat={chat} />
       </div>
-    </section>
+
+      <ThreadPanel
+        open={!!threadFor}
+        onOpenChange={(v) => !v && setThreadFor(null)}
+        parent={activeThread}
+        replies={threadFor ? (threads[threadFor] ?? []) : []}
+        onSend={(text) => {
+          if (!threadFor) return;
+          setThreads((prev) => ({
+            ...prev,
+            [threadFor]: [
+              ...(prev[threadFor] ?? []),
+              { id: `T-${Date.now()}`, senderId: "BOSS-000001", role: "BOSS", time: "Now", text },
+            ],
+          }));
+        }}
+      />
+
+      <MessageSearchDialog
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        messages={msgs}
+        starred={starred}
+        pinned={pinnedIds}
+        conversationId={chat.id}
+        onJump={scrollToMessage}
+      />
+    </>
   );
 }
 
