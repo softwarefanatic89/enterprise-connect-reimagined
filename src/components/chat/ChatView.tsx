@@ -388,13 +388,17 @@ function Transcript({ conversationId }: { conversationId: string }) {
       {!atBottom && !loading && (
         <button
           type="button"
-          onClick={jumpToLatest}
-          aria-label="Jump to latest message"
+          onClick={() => { setUnseenBelow(0); jumpToLatest(); }}
+          aria-label={unseenBelow > 0 ? `${unseenBelow} new messages, jump to latest` : "Jump to latest message"}
           className="animate-notify-in ripple absolute bottom-4 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-2 text-[11.5px] font-semibold shadow-[var(--shadow-float)] transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/50 active:scale-95"
         >
           <ArrowDown className="h-3.5 w-3.5 text-primary" />
-          Jump to latest
-          <span className="rounded-full bg-primary px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-primary-foreground">2</span>
+          {unseenBelow > 0 ? "New messages" : "Jump to latest"}
+          {unseenBelow > 0 && (
+            <span className="rounded-full bg-primary px-1.5 py-0.5 font-mono text-[10px] tabular-nums text-primary-foreground">
+              {unseenBelow}
+            </span>
+          )}
         </button>
       )}
     </div>
