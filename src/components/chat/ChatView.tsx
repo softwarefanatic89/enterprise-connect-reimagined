@@ -155,7 +155,22 @@ function ConversationRoot({ chat }: { chat: Conversation }) {
 
 /* ─────────── HEADER ─────────── */
 
-function ConversationHeader({ chat }: { chat: Conversation }) {
+const lockDown = {
+  onContextMenu: (e: React.MouseEvent) => e.preventDefault(),
+  onCopy: (e: React.ClipboardEvent) => e.preventDefault(),
+  onCut: (e: React.ClipboardEvent) => e.preventDefault(),
+  onDragStart: (e: React.DragEvent) => e.preventDefault(),
+};
+
+function ConversationHeader({
+  chat, pinnedMsgs = [], starredMsgs = [], onJump, onOpenSearch,
+}: {
+  chat: Conversation;
+  pinnedMsgs?: Message[];
+  starredMsgs?: Message[];
+  onJump?: (id: string) => void;
+  onOpenSearch?: () => void;
+}) {
   const r = chat.role ? ROLE[chat.role] : null;
   return (
     <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-border bg-surface/95 px-3 py-2.5 backdrop-blur-xl sm:gap-3.5 sm:px-6 sm:py-3">
@@ -196,10 +211,15 @@ function ConversationHeader({ chat }: { chat: Conversation }) {
         <span className="mr-2 hidden items-center gap-1 whitespace-nowrap rounded-full border border-[--color-success]/30 bg-[--color-success]/10 px-2 py-0.5 text-[10px] font-semibold text-[--color-success] xl:inline-flex">
           <Lock className="h-2.5 w-2.5" /> E2E · Internal Only
         </span>
-        <span className="hidden sm:contents"><HBtn label="Search in conversation"><Search className="h-4 w-4" /></HBtn></span>
+        <span className="hidden sm:contents">
+          <HBtn label="Search in conversation" onClick={onOpenSearch}><Search className="h-4 w-4" /></HBtn>
+        </span>
         <HBtn label="Start voice call"><Phone className="h-4 w-4" /></HBtn>
         <span className="hidden sm:contents"><HBtn label="Start video call"><Video className="h-4 w-4" /></HBtn></span>
-        <span className="hidden lg:contents"><HBtn label="Pinned messages"><Pin className="h-4 w-4" /></HBtn></span>
+        <span className="hidden lg:contents">
+          <PinnedPanel messages={pinnedMsgs} onJump={onJump ?? (() => {})} />
+          <StarredPanel messages={starredMsgs} onJump={onJump ?? (() => {})} />
+        </span>
         <span className="hidden lg:contents"><HBtn label="Members"><Users className="h-4 w-4" /></HBtn></span>
         <span className="hidden md:contents"><LanguageMenu scopeId={chat.id} scopeLabel={chat.id} /></span>
         <HBtn label="More actions"><MoreHorizontal className="h-4 w-4" /></HBtn>
@@ -208,10 +228,11 @@ function ConversationHeader({ chat }: { chat: Conversation }) {
   );
 }
 
-function HBtn({ children, label }: { children: React.ReactNode; label: string }) {
+function HBtn({ children, label, onClick }: { children: React.ReactNode; label: string; onClick?: () => void }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       title={label}
       aria-label={label}
       className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground transition-all hover:bg-surface-hover hover:text-foreground active:scale-95 focus-visible:outline-none"
@@ -268,9 +289,35 @@ function rowsToMapImpl(rows: ReactionRow[], uid: string | null): Record<string, 
   return out;
 }
 
-function Transcript({ conversationId }: { conversationId: string }) {
+function Transcript({
+  conversationId,
+  msgs = messages,
+  editedIds = new Set<string>(),
+  starred = new Set<string>(),
+  pinnedIds = new Set<string>(),
+  threads = {},
+  editing = null,
+  onEditingChange,
+  onSaveEdit,
+  onCancelEdit,
+  makeHandlers,
+  onOpenThread,
+}: {
+  conversationId: string;
+  msgs?: Message[];
+  editedIds?: Set<string>;
+  starred?: Set<string>;
+  pinnedIds?: Set<string>;
+  threads?: Record<string, ThreadReply[]>;
+  editing?: { id: string; value: string } | null;
+  onEditingChange?: (v: string) => void;
+  onSaveEdit?: () => void;
+  onCancelEdit?: () => void;
+  makeHandlers?: (m: Message) => MessageActionHandlers;
+  onOpenThread?: (id: string) => void;
+}) {
   const [reactionMap, setReactionMap] = useState<Record<string, ReactionState[]>>(() =>
-    Object.fromEntries(messages.map((m) => [m.id, m.reactions ?? []])),
+    Object.fromEntries(msgs.map((m) => [m.id, m.reactions ?? []])),
   );
   const [burst, setBurst] = useState<{ id: string; emoji: string; key: number } | null>(null);
   const [pickerFor, setPickerFor] = useState<string | null>(null);
@@ -433,7 +480,7 @@ function Transcript({ conversationId }: { conversationId: string }) {
   };
 
 
-  const unreadIndex = Math.max(messages.length - 2, 1);
+  const unreadIndex = Math.max(msgs.length - 2, 1);
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -465,17 +512,20 @@ function Transcript({ conversationId }: { conversationId: string }) {
           ) : (
             <>
               <DayDivider label="Today · Friday, June 19" />
-              {messages.map((m, i) => {
-                const prev = messages[i - 1];
+              {msgs.map((m, i) => {
+                const prev = msgs[i - 1];
                 const grouped =
                   !!prev &&
                   prev.senderId === m.senderId &&
                   prev.out === m.out &&
                   !m.reply &&
                   minutesBetween(prev.time, m.time) <= 5;
+                const handlers = makeHandlers?.(m);
+                const replies = threads[m.id] ?? [];
                 return (
-                  <div key={m.id} data-message={m.id}>
-                    {i === unreadIndex && <UnreadDivider count={messages.length - unreadIndex} />}
+                  <div key={m.id} data-message={m.id} className="group relative">
+                    {i === unreadIndex && <UnreadDivider count={msgs.length - unreadIndex} />}
+                    {handlers && <MessageActionBar out={!!m.out} h={handlers} />}
                     <Bubble
                       m={m}
                       conversationId={conversationId}
@@ -486,6 +536,32 @@ function Transcript({ conversationId }: { conversationId: string }) {
                       pickerOpen={pickerFor === m.id}
                       onRequestPicker={(open) => setPickerFor(open ? m.id : null)}
                     />
+                    <div className={`flex ${m.out ? "justify-end pr-14" : "pl-14"}`}>
+                      {editedIds.has(m.id) && (
+                        <span className="mt-0.5 text-[9.5px] text-muted-foreground">(edited)</span>
+                      )}
+                      <ThreadTeaser
+                        count={replies.length}
+                        participants={replies.map((r) => r.role)}
+                        onOpen={() => onOpenThread?.(m.id)}
+                      />
+                    </div>
+                    {editing?.id === m.id && (
+                      <div className={`mt-1 flex items-center gap-2 ${m.out ? "justify-end pr-14" : "pl-14"}`}>
+                        <input
+                          value={editing.value}
+                          onChange={(e) => onEditingChange?.(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") onSaveEdit?.();
+                            if (e.key === "Escape") onCancelEdit?.();
+                          }}
+                          autoFocus
+                          className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12.5px] outline-none"
+                        />
+                        <button type="button" onClick={() => onSaveEdit?.()} className="rounded-lg bg-primary px-2.5 py-1.5 text-[11.5px] font-semibold text-primary-foreground">Save</button>
+                        <button type="button" onClick={() => onCancelEdit?.()} className="rounded-lg border border-border px-2.5 py-1.5 text-[11.5px]">Cancel</button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
