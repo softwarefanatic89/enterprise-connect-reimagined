@@ -289,9 +289,35 @@ function rowsToMapImpl(rows: ReactionRow[], uid: string | null): Record<string, 
   return out;
 }
 
-function Transcript({ conversationId }: { conversationId: string }) {
+function Transcript({
+  conversationId,
+  msgs = messages,
+  editedIds = new Set<string>(),
+  starred = new Set<string>(),
+  pinnedIds = new Set<string>(),
+  threads = {},
+  editing = null,
+  onEditingChange,
+  onSaveEdit,
+  onCancelEdit,
+  makeHandlers,
+  onOpenThread,
+}: {
+  conversationId: string;
+  msgs?: Message[];
+  editedIds?: Set<string>;
+  starred?: Set<string>;
+  pinnedIds?: Set<string>;
+  threads?: Record<string, ThreadReply[]>;
+  editing?: { id: string; value: string } | null;
+  onEditingChange?: (v: string) => void;
+  onSaveEdit?: () => void;
+  onCancelEdit?: () => void;
+  makeHandlers?: (m: Message) => MessageActionHandlers;
+  onOpenThread?: (id: string) => void;
+}) {
   const [reactionMap, setReactionMap] = useState<Record<string, ReactionState[]>>(() =>
-    Object.fromEntries(messages.map((m) => [m.id, m.reactions ?? []])),
+    Object.fromEntries(msgs.map((m) => [m.id, m.reactions ?? []])),
   );
   const [burst, setBurst] = useState<{ id: string; emoji: string; key: number } | null>(null);
   const [pickerFor, setPickerFor] = useState<string | null>(null);
@@ -454,7 +480,7 @@ function Transcript({ conversationId }: { conversationId: string }) {
   };
 
 
-  const unreadIndex = Math.max(messages.length - 2, 1);
+  const unreadIndex = Math.max(msgs.length - 2, 1);
 
   return (
     <div className="relative flex min-h-0 flex-1 flex-col">
@@ -486,17 +512,20 @@ function Transcript({ conversationId }: { conversationId: string }) {
           ) : (
             <>
               <DayDivider label="Today · Friday, June 19" />
-              {messages.map((m, i) => {
-                const prev = messages[i - 1];
+              {msgs.map((m, i) => {
+                const prev = msgs[i - 1];
                 const grouped =
                   !!prev &&
                   prev.senderId === m.senderId &&
                   prev.out === m.out &&
                   !m.reply &&
                   minutesBetween(prev.time, m.time) <= 5;
+                const handlers = makeHandlers?.(m);
+                const replies = threads[m.id] ?? [];
                 return (
-                  <div key={m.id} data-message={m.id}>
-                    {i === unreadIndex && <UnreadDivider count={messages.length - unreadIndex} />}
+                  <div key={m.id} data-message={m.id} className="group relative">
+                    {i === unreadIndex && <UnreadDivider count={msgs.length - unreadIndex} />}
+                    {handlers && <MessageActionBar out={!!m.out} h={handlers} />}
                     <Bubble
                       m={m}
                       conversationId={conversationId}
@@ -507,6 +536,32 @@ function Transcript({ conversationId }: { conversationId: string }) {
                       pickerOpen={pickerFor === m.id}
                       onRequestPicker={(open) => setPickerFor(open ? m.id : null)}
                     />
+                    <div className={`flex ${m.out ? "justify-end pr-14" : "pl-14"}`}>
+                      {editedIds.has(m.id) && (
+                        <span className="mt-0.5 text-[9.5px] text-muted-foreground">(edited)</span>
+                      )}
+                      <ThreadTeaser
+                        count={replies.length}
+                        participants={replies.map((r) => r.role)}
+                        onOpen={() => onOpenThread?.(m.id)}
+                      />
+                    </div>
+                    {editing?.id === m.id && (
+                      <div className={`mt-1 flex items-center gap-2 ${m.out ? "justify-end pr-14" : "pl-14"}`}>
+                        <input
+                          value={editing.value}
+                          onChange={(e) => onEditingChange?.(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") onSaveEdit?.();
+                            if (e.key === "Escape") onCancelEdit?.();
+                          }}
+                          autoFocus
+                          className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12.5px] outline-none"
+                        />
+                        <button type="button" onClick={() => onSaveEdit?.()} className="rounded-lg bg-primary px-2.5 py-1.5 text-[11.5px] font-semibold text-primary-foreground">Save</button>
+                        <button type="button" onClick={() => onCancelEdit?.()} className="rounded-lg border border-border px-2.5 py-1.5 text-[11.5px]">Cancel</button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
