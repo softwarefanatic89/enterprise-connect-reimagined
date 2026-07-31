@@ -13,6 +13,7 @@ import { Route as TeamsRouteImport } from './routes/teams'
 import { Route as ChatManagerRouteImport } from './routes/chat-manager'
 import { Route as ChannelsRouteImport } from './routes/channels'
 import { Route as CallsRouteImport } from './routes/calls'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TeamsRoute = TeamsRouteImport.update({
@@ -35,6 +36,11 @@ const CallsRoute = CallsRouteImport.update({
   path: '/calls',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -43,6 +49,7 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/calls': typeof CallsRoute
   '/channels': typeof ChannelsRoute
   '/chat-manager': typeof ChatManagerRoute
@@ -50,6 +57,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/calls': typeof CallsRoute
   '/channels': typeof ChannelsRoute
   '/chat-manager': typeof ChatManagerRoute
@@ -58,6 +66,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
   '/calls': typeof CallsRoute
   '/channels': typeof ChannelsRoute
   '/chat-manager': typeof ChatManagerRoute
@@ -65,14 +74,28 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/calls' | '/channels' | '/chat-manager' | '/teams'
+  fullPaths:
+    | '/'
+    | '/analytics'
+    | '/calls'
+    | '/channels'
+    | '/chat-manager'
+    | '/teams'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/calls' | '/channels' | '/chat-manager' | '/teams'
-  id: '__root__' | '/' | '/calls' | '/channels' | '/chat-manager' | '/teams'
+  to: '/' | '/analytics' | '/calls' | '/channels' | '/chat-manager' | '/teams'
+  id:
+    | '__root__'
+    | '/'
+    | '/analytics'
+    | '/calls'
+    | '/channels'
+    | '/chat-manager'
+    | '/teams'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
   CallsRoute: typeof CallsRoute
   ChannelsRoute: typeof ChannelsRoute
   ChatManagerRoute: typeof ChatManagerRoute
@@ -109,6 +132,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CallsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -121,6 +151,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
   CallsRoute: CallsRoute,
   ChannelsRoute: ChannelsRoute,
   ChatManagerRoute: ChatManagerRoute,
