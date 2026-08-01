@@ -1,4 +1,4 @@
-import { CalendarRange, Download, FileText, Filter, RotateCcw } from "lucide-react";
+import { CalendarRange, Download, FileText, Filter, Lock, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { STAFF, STATUS_META, TAGS, PRIORITY_META, type ConvStatus, type Priority } from "./data";
@@ -25,7 +25,7 @@ const selectCls =
   "h-8 rounded-lg border border-border bg-background px-2 text-[11.5px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
 export function Filters({
-  value, onChange, onReset, onExportCsv, onExportHtml, resultCount,
+  value, onChange, onReset, onExportCsv, onExportHtml, resultCount, canExport = true,
 }: {
   value: FilterState;
   onChange: (next: FilterState) => void;
@@ -33,6 +33,7 @@ export function Filters({
   onExportCsv: () => void;
   onExportHtml: () => void;
   resultCount: number;
+  canExport?: boolean;
 }) {
   const set = (patch: Partial<FilterState>) => onChange({ ...value, ...patch });
 
@@ -84,8 +85,14 @@ export function Filters({
           <span className="text-[11px] tabular-nums text-muted-foreground">{resultCount} results</span>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[11px]">
-                <Download className="h-3.5 w-3.5" /> Export
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-8 gap-1.5 text-[11px]"
+                disabled={!canExport}
+                title={canExport ? "Export report" : "Your role cannot export analytics"}
+              >
+                {canExport ? <Download className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />} Export
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">

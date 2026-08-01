@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { ChevronRight, Home, BarChart3 } from "lucide-react";
+import { ChevronRight, Home, BarChart3, ShieldAlert, Lock } from "lucide-react";
+import { useAnalyticsAccess } from "@/lib/analytics-access";
 import { conversations, daysAgo } from "@/components/analytics/data";
 import { Filters, type FilterState } from "@/components/analytics/Filters";
 import { CsatOverview } from "@/components/analytics/Overview";
@@ -39,6 +40,7 @@ const defaultFilters: FilterState = {
 
 function AnalyticsPage() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
+  const { role, canView, canExport } = useAnalyticsAccess();
 
   const window = useMemo(() => {
     if (filters.preset === "custom") return { from: filters.from, to: filters.to };
@@ -105,6 +107,26 @@ function AnalyticsPage() {
         </Link>
       </header>
 
+      {!canView ? (
+        <div className="grid min-h-0 flex-1 place-items-center px-6">
+          <div className="max-w-md rounded-2xl border border-border bg-card p-6 text-center">
+            <span className="mx-auto grid h-10 w-10 place-items-center rounded-xl bg-destructive/10 text-destructive">
+              <ShieldAlert className="h-5 w-5" />
+            </span>
+            <h1 className="mt-3 text-[15px] font-bold tracking-tight">Analytics access restricted</h1>
+            <p className="mt-1.5 text-[12px] text-muted-foreground">
+              Your role (<span className="font-semibold text-foreground">{role}</span>) is not permitted to view CSAT
+              &amp; analytics data. An administrator can grant access in Chat Manager → Analytics Access.
+            </p>
+            <Link
+              to="/chat-manager"
+              className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-[11.5px] font-semibold text-primary-foreground hover:bg-primary/90"
+            >
+              <Lock className="h-3.5 w-3.5" /> Request access
+            </Link>
+          </div>
+        </div>
+      ) : (
       <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-4 px-4 py-5 md:px-6">
           <div className="flex items-center gap-2">
@@ -113,6 +135,9 @@ function AnalyticsPage() {
               <h1 className="text-[16px] font-bold leading-none tracking-tight">Customer satisfaction &amp; analytics</h1>
               <p className="mt-1 text-[11.5px] text-muted-foreground">Ratings, response performance and conversation reporting across the workspace</p>
             </div>
+            <span className="ml-auto hidden items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground sm:inline-flex">
+              <Lock className="h-3.5 w-3.5 text-primary" /> {role} · {canExport ? "view + export" : "view only"}
+            </span>
           </div>
 
           <Filters
@@ -120,8 +145,9 @@ function AnalyticsPage() {
             onChange={setFilters}
             onReset={() => setFilters(defaultFilters)}
             resultCount={filtered.length}
-            onExportCsv={() => download(`${exportName}.csv`, toCSV(filtered), "text/csv")}
-            onExportHtml={() => download(`${exportName}.html`, toHTML(filtered, "Software Vala — CSAT report"), "text/html")}
+            canExport={canExport}
+            onExportCsv={() => canExport && download(`${exportName}.csv`, toCSV(filtered), "text/csv")}
+            onExportHtml={() => canExport && download(`${exportName}.html`, toHTML(filtered, "Software Vala — CSAT report"), "text/html")}
           />
 
           <CsatOverview
@@ -145,6 +171,7 @@ function AnalyticsPage() {
           <ConversationsTable rows={[...filtered].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 40)} />
         </div>
       </div>
+      )}
     </div>
   );
 }

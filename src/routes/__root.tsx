@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LanguageProvider } from "../lib/language";
 import { ViewPreferencesProvider } from "../lib/view-preferences";
+import { AnalyticsAccessProvider } from "../lib/analytics-access";
 
 function NotFoundComponent() {
   return (
@@ -125,8 +126,10 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ViewPreferencesProvider>
         <LanguageProvider>
-          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-          <Outlet />
+          <AnalyticsAccessProvider>
+            {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+            <Outlet />
+          </AnalyticsAccessProvider>
         </LanguageProvider>
       </ViewPreferencesProvider>
     </QueryClientProvider>
