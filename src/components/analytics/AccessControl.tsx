@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   ANALYTICS_ROLES,
+  ANALYTICS_PERMISSIONS,
   useAnalyticsAccess,
   type AnalyticsRole,
 } from "@/lib/analytics-access";
@@ -20,7 +21,7 @@ export function AnalyticsAccessControl() {
           <div>
             <h3 className="text-[13px] font-bold tracking-tight text-foreground">Analytics Access Control</h3>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Choose which roles may open the CSAT &amp; Analytics dashboard and export its reports.
+              Choose which roles may open the CSAT &amp; Analytics dashboard, which sections they see, and who can export reports.
             </p>
           </div>
         </div>
@@ -30,12 +31,16 @@ export function AnalyticsAccessControl() {
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-card">
-        <table className="w-full min-w-[520px] border-collapse text-[11.5px]">
+        <table className="w-full min-w-[720px] border-collapse text-[11.5px]">
           <thead>
             <tr className="border-b border-border">
               <th className="px-3 py-2.5 text-left font-semibold uppercase tracking-wide text-muted-foreground">Role</th>
-              <th className="px-3 py-2.5 text-center font-semibold text-foreground">View analytics</th>
-              <th className="px-3 py-2.5 text-center font-semibold text-foreground">Export analytics</th>
+              {ANALYTICS_PERMISSIONS.map((p) => (
+                <th key={p.key} className="px-3 py-2.5 text-center font-semibold text-foreground">
+                  {p.label}
+                  <span className="mt-0.5 block text-[10px] font-normal text-muted-foreground">{p.hint}</span>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
@@ -47,24 +52,17 @@ export function AnalyticsAccessControl() {
                     {r}
                   </span>
                 </td>
-                <td className="px-3 py-2 text-center">
-                  <Checkbox
-                    className="mx-auto"
-                    checked={r === "Owner" || grants[r].view}
-                    disabled={r === "Owner"}
-                    aria-label={`${r} — view analytics`}
-                    onCheckedChange={(v) => setGrant(r, "view", v === true)}
-                  />
-                </td>
-                <td className="px-3 py-2 text-center">
-                  <Checkbox
-                    className="mx-auto"
-                    checked={r === "Owner" || grants[r].export}
-                    disabled={r === "Owner"}
-                    aria-label={`${r} — export analytics`}
-                    onCheckedChange={(v) => setGrant(r, "export", v === true)}
-                  />
-                </td>
+                {ANALYTICS_PERMISSIONS.map((p) => (
+                  <td key={p.key} className="px-3 py-2 text-center">
+                    <Checkbox
+                      className="mx-auto"
+                      checked={r === "Owner" || grants[r][p.key]}
+                      disabled={r === "Owner" || (p.key !== "view" && !grants[r].view)}
+                      aria-label={`${r} — ${p.label}`}
+                      onCheckedChange={(v) => setGrant(r, p.key, v === true)}
+                    />
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
