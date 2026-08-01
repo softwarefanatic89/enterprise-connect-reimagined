@@ -1,4 +1,4 @@
-import { CalendarRange, Download, FileText, Filter, RotateCcw } from "lucide-react";
+import { CalendarRange, Download, FileText, Filter, Lock, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { STAFF, STATUS_META, TAGS, PRIORITY_META, type ConvStatus, type Priority } from "./data";
