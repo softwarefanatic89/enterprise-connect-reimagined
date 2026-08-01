@@ -32,7 +32,7 @@ type SectionId =
   | "roles" | "approvals" | "escalation" | "categories" | "tags" | "labels" | "priority"
   | "automation" | "archive" | "broadcast" | "announcement" | "audit" | "activity"
   | "storage" | "usage" | "search-index" | "ai-training" | "integrations" | "backup"
-  | "system" | "permissions";
+  | "system" | "permissions" | "analytics-access";
 
 type NavItem = { id: SectionId; label: string; icon: typeof Settings; hint?: string };
 type NavGroup = { label: string; icon: typeof Settings; items: NavItem[] };
@@ -56,6 +56,7 @@ const NAV: NavGroup[] = [
       { id: "compliance", label: "Compliance Rules", icon: Gavel, hint: "ISO · SOC · GDPR · DPDP" },
       { id: "roles", label: "Role Access Matrix", icon: KeyRound, hint: "Per-role capabilities" },
       { id: "permissions", label: "Permission Matrix", icon: FileLock2, hint: "Per-user overrides" },
+      { id: "analytics-access", label: "Analytics Access", icon: BarChart3, hint: "Who can view & export CSAT" },
     ],
   },
   {
