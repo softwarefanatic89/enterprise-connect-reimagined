@@ -13,6 +13,25 @@ import {
   ArrowUpRight, Check, X as XIcon, ShieldQuestion, CircleAlert, Layers,
   ThumbsUp, ThumbsDown, Sparkle,
 } from "lucide-react";
+import { AnalyticsAccessControl } from "@/components/analytics/AccessControl";
+import { useAnalyticsAccess } from "@/lib/analytics-access";
+
+function AnalyticsAccessNotice() {
+  const { role, canView, canExport } = useAnalyticsAccess();
+  return (
+    <div className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border border-border bg-secondary/40 px-3 py-2 text-[11px]">
+      <KeyRound className="h-3.5 w-3.5 text-primary" />
+      <span className="font-semibold text-foreground">Your role: {role}</span>
+      <span className="text-muted-foreground">
+        {canView ? "Can view CSAT dashboard" : "No access to CSAT dashboard"} ·{" "}
+        {canExport ? "Can export reports" : "Export disabled"}
+      </span>
+      <Link to="/analytics" className="ml-auto font-semibold text-primary hover:underline">
+        Open CSAT &amp; Analytics
+      </Link>
+    </div>
+  );
+}
 
 export const Route = createFileRoute("/chat-manager")({
   head: () => ({
