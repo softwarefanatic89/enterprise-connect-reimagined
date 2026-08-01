@@ -1486,12 +1486,18 @@ function SectionRenderer({ id }: { id: SectionId }) {
     );
     case "usage": return (
       <Section title="Usage Analytics" desc="Volume, response time and utilisation across departments and modules.">
+        <AnalyticsAccessNotice />
         <StatGrid stats={[
           { label: "Active Conversations", value: "—" },
           { label: "Median First Response", value: "—" },
           { label: "P0 Escalations (7d)", value: "—" },
           { label: "AI Assist Coverage", value: "—" },
         ]} />
+      </Section>
+    );
+    case "analytics-access": return (
+      <Section title="Analytics Access" desc="Role-based control over who can open and export the CSAT & Analytics dashboard.">
+        <AnalyticsAccessControl />
       </Section>
     );
     case "search-index": return (
