@@ -578,7 +578,7 @@ function Transcript({
           type="button"
           onClick={() => { setUnseenBelow(0); jumpToLatest(); }}
           aria-label={unseenBelow > 0 ? `${unseenBelow} new messages, jump to latest` : "Jump to latest message"}
-          className="animate-notify-in ripple absolute bottom-4 left-1/2 z-20 inline-flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-surface px-3.5 py-2 text-[11.5px] font-semibold shadow-[var(--shadow-float)] transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/50 active:scale-95"
+          className="animate-notify-in absolute bottom-4 left-1/2 z-20 flex w-max max-w-[90%] -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-popover/90 px-4 py-2 text-[11.5px] font-semibold shadow-[var(--shadow-float)] backdrop-blur-xl transition-all duration-150 hover:-translate-y-0.5 hover:border-primary/50 active:scale-95"
         >
           <ArrowDown className="h-3.5 w-3.5 text-primary" />
           {unseenBelow > 0 ? "New messages" : "Jump to latest"}
@@ -698,10 +698,8 @@ function Bubble({
         {/* Minimal inline meta */}
         {!grouped && (
           <div className={`mb-1.5 flex items-center gap-1.5 px-1 text-[10.5px] ${out ? "flex-row-reverse" : ""}`}>
-            <span className="font-mono font-bold text-foreground">{m.senderId}</span>
-            <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground">{m.time}</span>
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider ${
+            <span className="font-mono font-bold tracking-tight text-foreground">{m.senderId}</span>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] ${
               PRIORITY[m.priority].cls
             }`}>{PRIORITY[m.priority].label}</span>
           </div>
@@ -714,7 +712,7 @@ function Bubble({
         )}
 
         {/* Card */}
-        <div className="relative w-full">
+        <div className="relative w-fit max-w-full">
           <div
             className={`animate-pop-in relative overflow-hidden text-[13.5px] leading-relaxed transition-all duration-300 ${
               out
@@ -755,9 +753,10 @@ function Bubble({
               {m.attachment?.kind === "voice" && <VoiceAttachment id={m.attachment.id} duration={m.attachment.duration!} bars={m.attachment.waveform!} />}
             </div>
 
-            <BubbleFooter m={m} out={out} />
+            <BubbleStatusLine m={m} out={out} />
           </div>
 
+          <BubbleQuickBar out={out} />
           <ReactionDock out={out} onPick={(e) => { onToggle(e); onRequestPicker(false); }} forceOpen={pickerOpen} onDismiss={() => onRequestPicker(false)} />
         </div>
 
@@ -832,17 +831,18 @@ function AuditStrip({ m, conversationId, out }: { m: Message; conversationId: st
     { k: "Audit", v: "Available · Immutable record" },
   ];
   return (
-    <div className={`group/audit relative mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-surface/70 px-2 py-0.5 font-mono text-[9.5px] text-muted-foreground backdrop-blur ${out ? "self-end" : "self-start"}`}>
+    <div
+      tabIndex={0}
+      aria-label={`Enterprise record for ${m.id}`}
+      className={`group/audit relative mt-1 inline-flex max-w-full items-center gap-1 rounded-full border border-transparent px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground/70 opacity-60 outline-none transition-all duration-200 hover:border-border/70 hover:bg-surface/80 hover:opacity-100 focus-visible:border-border focus-visible:opacity-100 group-hover:opacity-100 ${out ? "self-end" : "self-start"}`}
+    >
       <ShieldCheck className="h-2.5 w-2.5 text-[--color-success]" />
-      <span className="truncate font-semibold text-foreground/80">{m.id}</span>
-      <span className="text-border">·</span>
-      <span className="truncate">{conversationId}</span>
-      <span className="text-border">·</span>
+      <span className="truncate font-semibold text-foreground/70">{m.id}</span>
       <Lock className="h-2.5 w-2.5 text-[--color-success]" aria-label="Sealed" />
       <span className="text-[--color-success]">{readLabel === "Delivered · Read" ? "READ" : readLabel === "Delivered" ? "DLV" : "SENT"}</span>
-      <span className="text-border">·</span>
-      <FileText className="h-2.5 w-2.5" />
-      <span className="uppercase tracking-wider">Audit</span>
+      <span className="hidden items-center gap-1 group-hover/audit:inline-flex">
+        <FileText className="h-2.5 w-2.5" />
+      </span>
 
       {/* Hover / focus reveal — full record without cluttering the default state */}
       <div className={`pointer-events-none absolute ${out ? "right-0" : "left-0"} top-full z-30 mt-1 hidden min-w-[260px] rounded-xl border border-border bg-popover p-2.5 text-[10px] text-foreground shadow-[0_20px_50px_-20px_oklch(0.2_0.05_265/0.45)] group-hover/audit:block group-focus-within/audit:block`}>
@@ -897,42 +897,51 @@ function EmotionChip({ s }: { s: WorkStatus }) {
   );
 }
 
-function BubbleFooter({ m, out }: { m: Message; out: boolean }) {
+/** Quiet in-bubble status line: timestamp + delivery ticks, no action clutter. */
+function BubbleStatusLine({ m, out }: { m: Message; out: boolean }) {
   return (
-    <div className={`mt-2 flex items-center justify-between gap-2 border-t px-2 py-1 ${
-      out ? "border-white/10 bg-white/[0.04]" : "border-border-soft bg-surface-hover/30"
-    }`}>
-      <div className="flex items-center gap-0.5 opacity-50 transition-opacity duration-200 group-hover:opacity-100">
-        <FBtn icon={<Languages className="h-3.5 w-3.5" />} label="Translate" out={out} />
-        <FBtn icon={<Volume2 className="h-3.5 w-3.5" />} label="Listen" out={out} />
-        <FBtn icon={<Sparkles className="h-3.5 w-3.5" />} label="AI" out={out} accent />
-        <span className={`mx-1 h-3 w-px ${out ? "bg-white/15" : "bg-border"}`} />
-        <FBtn icon={<Reply className="h-3.5 w-3.5" />} label="Reply" out={out} />
-        <FBtn icon={<MoreHorizontal className="h-3.5 w-3.5" />} label="More" out={out} />
-      </div>
+    <div className={`flex items-center gap-1.5 px-4 pb-2.5 pt-2 text-[10px] ${out ? "justify-end text-white/55" : "justify-end text-muted-foreground"}`}>
+      <span className="font-mono tabular-nums">{m.time}</span>
       {out && (
-        <span key={m.read} className={`tick-in inline-flex items-center gap-1 text-[10px] ${out ? "text-white/70" : "text-muted-foreground"}`}>
-          {m.read === "read" ? <CheckCheck className="h-3.5 w-3.5 text-[oklch(0.72_0.13_258)]" /> : <Check className="h-3.5 w-3.5" />}
-          {m.read}
+        <span key={m.read} className="tick-in inline-flex items-center gap-1">
+          {m.read === "read"
+            ? <CheckCheck className="h-3.5 w-3.5 text-[oklch(0.72_0.13_258)]" />
+            : <Check className="h-3.5 w-3.5" />}
         </span>
       )}
     </div>
   );
 }
 
+/** Floating glass quick bar — revealed on hover only, never occupies layout space. */
+function BubbleQuickBar({ out }: { out: boolean }) {
+  return (
+    <div
+      role="toolbar"
+      aria-label="Message quick actions"
+      className={`pointer-events-none absolute -bottom-3.5 ${out ? "left-2" : "right-2"} z-10 flex translate-y-1 items-center gap-0.5 rounded-full border border-border/80 bg-popover/85 px-1 py-0.5 opacity-0 shadow-[0_12px_30px_-14px_oklch(0.35_0.12_290/0.55)] backdrop-blur-xl transition-all duration-150 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100`}
+    >
+      <FBtn icon={<Languages className="h-3.5 w-3.5" />} label="Translate" />
+      <FBtn icon={<Volume2 className="h-3.5 w-3.5" />} label="Listen" />
+      <FBtn icon={<Sparkles className="h-3.5 w-3.5" />} label="AI" accent />
+      <span className="mx-0.5 h-3 w-px bg-border" />
+      <FBtn icon={<Reply className="h-3.5 w-3.5" />} label="Reply" />
+      <FBtn icon={<MoreHorizontal className="h-3.5 w-3.5" />} label="More" />
+    </div>
+  );
+}
 
-function FBtn({ icon, label, accent, out }: { icon: React.ReactNode; label: string; accent?: boolean; out?: boolean }) {
+function FBtn({ icon, label, accent }: { icon: React.ReactNode; label: string; accent?: boolean }) {
   return (
     <button
+      type="button"
       title={label}
-      className={`group/btn flex h-7 items-center gap-1 rounded-md px-1.5 transition-all ${
-        out
-          ? `text-white/60 hover:bg-white/10 ${accent ? "hover:text-[oklch(0.72_0.13_258)]" : "hover:text-white"}`
-          : `text-muted-foreground hover:bg-surface ${accent ? "hover:text-[oklch(0.55_0.2_295)]" : "hover:text-foreground"}`
+      aria-label={label}
+      className={`grid h-7 w-7 place-items-center rounded-full transition-all hover:bg-surface-hover active:scale-95 ${
+        accent ? "text-[oklch(0.55_0.2_295)] hover:bg-[oklch(0.55_0.2_295)]/10" : "text-muted-foreground hover:text-foreground"
       }`}
     >
       {icon}
-      <span className="hidden text-[10.5px] font-medium group-hover/btn:inline">{label}</span>
     </button>
   );
 }
