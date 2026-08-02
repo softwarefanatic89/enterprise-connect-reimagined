@@ -898,42 +898,51 @@ function EmotionChip({ s }: { s: WorkStatus }) {
   );
 }
 
-function BubbleFooter({ m, out }: { m: Message; out: boolean }) {
+/** Quiet in-bubble status line: timestamp + delivery ticks, no action clutter. */
+function BubbleStatusLine({ m, out }: { m: Message; out: boolean }) {
   return (
-    <div className={`mt-2 flex items-center justify-between gap-2 border-t px-2 py-1 ${
-      out ? "border-white/10 bg-white/[0.04]" : "border-border-soft bg-surface-hover/30"
-    }`}>
-      <div className="flex items-center gap-0.5 opacity-50 transition-opacity duration-200 group-hover:opacity-100">
-        <FBtn icon={<Languages className="h-3.5 w-3.5" />} label="Translate" out={out} />
-        <FBtn icon={<Volume2 className="h-3.5 w-3.5" />} label="Listen" out={out} />
-        <FBtn icon={<Sparkles className="h-3.5 w-3.5" />} label="AI" out={out} accent />
-        <span className={`mx-1 h-3 w-px ${out ? "bg-white/15" : "bg-border"}`} />
-        <FBtn icon={<Reply className="h-3.5 w-3.5" />} label="Reply" out={out} />
-        <FBtn icon={<MoreHorizontal className="h-3.5 w-3.5" />} label="More" out={out} />
-      </div>
+    <div className={`flex items-center gap-1.5 px-4 pb-2.5 pt-2 text-[10px] ${out ? "justify-end text-white/55" : "justify-end text-muted-foreground"}`}>
+      <span className="font-mono tabular-nums">{m.time}</span>
       {out && (
-        <span key={m.read} className={`tick-in inline-flex items-center gap-1 text-[10px] ${out ? "text-white/70" : "text-muted-foreground"}`}>
-          {m.read === "read" ? <CheckCheck className="h-3.5 w-3.5 text-[oklch(0.72_0.13_258)]" /> : <Check className="h-3.5 w-3.5" />}
-          {m.read}
+        <span key={m.read} className="tick-in inline-flex items-center gap-1">
+          {m.read === "read"
+            ? <CheckCheck className="h-3.5 w-3.5 text-[oklch(0.72_0.13_258)]" />
+            : <Check className="h-3.5 w-3.5" />}
         </span>
       )}
     </div>
   );
 }
 
+/** Floating glass quick bar — revealed on hover only, never occupies layout space. */
+function BubbleQuickBar({ out }: { out: boolean }) {
+  return (
+    <div
+      role="toolbar"
+      aria-label="Message quick actions"
+      className={`pointer-events-none absolute -bottom-3.5 ${out ? "left-2" : "right-2"} z-10 flex translate-y-1 items-center gap-0.5 rounded-full border border-border/80 bg-popover/85 px-1 py-0.5 opacity-0 shadow-[0_12px_30px_-14px_oklch(0.35_0.12_290/0.55)] backdrop-blur-xl transition-all duration-150 group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100`}
+    >
+      <FBtn icon={<Languages className="h-3.5 w-3.5" />} label="Translate" />
+      <FBtn icon={<Volume2 className="h-3.5 w-3.5" />} label="Listen" />
+      <FBtn icon={<Sparkles className="h-3.5 w-3.5" />} label="AI" accent />
+      <span className="mx-0.5 h-3 w-px bg-border" />
+      <FBtn icon={<Reply className="h-3.5 w-3.5" />} label="Reply" />
+      <FBtn icon={<MoreHorizontal className="h-3.5 w-3.5" />} label="More" />
+    </div>
+  );
+}
 
-function FBtn({ icon, label, accent, out }: { icon: React.ReactNode; label: string; accent?: boolean; out?: boolean }) {
+function FBtn({ icon, label, accent }: { icon: React.ReactNode; label: string; accent?: boolean }) {
   return (
     <button
+      type="button"
       title={label}
-      className={`group/btn flex h-7 items-center gap-1 rounded-md px-1.5 transition-all ${
-        out
-          ? `text-white/60 hover:bg-white/10 ${accent ? "hover:text-[oklch(0.72_0.13_258)]" : "hover:text-white"}`
-          : `text-muted-foreground hover:bg-surface ${accent ? "hover:text-[oklch(0.55_0.2_295)]" : "hover:text-foreground"}`
+      aria-label={label}
+      className={`grid h-7 w-7 place-items-center rounded-full transition-all hover:bg-surface-hover active:scale-95 ${
+        accent ? "text-[oklch(0.55_0.2_295)] hover:bg-[oklch(0.55_0.2_295)]/10" : "text-muted-foreground hover:text-foreground"
       }`}
     >
       {icon}
-      <span className="hidden text-[10.5px] font-medium group-hover/btn:inline">{label}</span>
     </button>
   );
 }
