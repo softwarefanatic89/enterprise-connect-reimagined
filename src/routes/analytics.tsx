@@ -40,7 +40,7 @@ const defaultFilters: FilterState = {
 
 function AnalyticsPage() {
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
-  const { role, canView, canExport } = useAnalyticsAccess();
+  const { role, canView, canExport, canViewKpis, canViewBreakdown, canViewStaff } = useAnalyticsAccess();
 
   const window = useMemo(() => {
     if (filters.preset === "custom") return { from: filters.from, to: filters.to };
@@ -150,28 +150,48 @@ function AnalyticsPage() {
             onExportHtml={() => canExport && download(`${exportName}.html`, toHTML(filtered, "Software Vala — CSAT report"), "text/html")}
           />
 
-          <CsatOverview
-            total={now.total}
-            avg={now.avg}
-            responsePct={now.responsePct}
-            avgFirstResponse={now.avgFirstResponse}
-            ratedPct={now.ratedPct}
-            deltas={{ total: pct(now.total, then.total), avg: pct(now.avg, then.avg), response: pct(now.responsePct, then.responsePct) }}
-          />
+          {canViewKpis ? (
+            <CsatOverview
+              total={now.total}
+              avg={now.avg}
+              responsePct={now.responsePct}
+              avgFirstResponse={now.avgFirstResponse}
+              ratedPct={now.ratedPct}
+              deltas={{ total: pct(now.total, then.total), avg: pct(now.avg, then.avg), response: pct(now.responsePct, then.responsePct) }}
+            />
+          ) : (
+            <RestrictedBlock label="KPI overview" />
+          )}
 
           <TrendCharts data={trend(filtered, Math.min(60, Math.max(7, spanDays)))} />
 
           <div className="grid gap-3 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
-            <RatingBreakdown rows={breakdown(filtered)} avg={now.avg} ratedCount={now.ratedCount} />
-            <StaffPerformance rows={byStaff(filtered)} />
+            {canViewBreakdown ? (
+              <RatingBreakdown rows={breakdown(filtered)} avg={now.avg} ratedCount={now.ratedCount} />
+            ) : (
+              <RestrictedBlock label="Rating breakdown" />
+            )}
+            {canViewStaff ? <StaffPerformance rows={byStaff(filtered)} /> : <RestrictedBlock label="Staff performance" />}
           </div>
 
-          <QuickStats stats={quick} />
+          {canViewKpis && <QuickStats stats={quick} />}
 
           <ConversationsTable rows={[...filtered].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 40)} />
         </div>
       </div>
       )}
+    </div>
+  );
+}
+
+function RestrictedBlock({ label }: { label: string }) {
+  return (
+    <div className="flex min-h-[120px] flex-col items-center justify-center gap-1.5 rounded-2xl border border-dashed border-border bg-card/60 px-4 py-6 text-center">
+      <span className="grid h-8 w-8 place-items-center rounded-lg bg-muted text-muted-foreground">
+        <Lock className="h-4 w-4" />
+      </span>
+      <p className="text-[12px] font-semibold text-foreground">{label} restricted</p>
+      <p className="text-[11px] text-muted-foreground">Your role does not have permission to view this section.</p>
     </div>
   );
 }
