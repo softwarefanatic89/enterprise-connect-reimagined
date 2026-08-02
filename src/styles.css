@@ -914,7 +914,8 @@ textarea:focus-visible,
 .hover-glow:hover { box-shadow: var(--shadow-glow); }
 
 /* Button ripple */
-.ripple { position: relative; overflow: hidden; }
+:where(.ripple) { position: relative; }
+.ripple { overflow: hidden; }
 .ripple::after {
   content: "";
   position: absolute;
