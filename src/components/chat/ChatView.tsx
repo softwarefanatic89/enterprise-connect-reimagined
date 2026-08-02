@@ -698,10 +698,8 @@ function Bubble({
         {/* Minimal inline meta */}
         {!grouped && (
           <div className={`mb-1.5 flex items-center gap-1.5 px-1 text-[10.5px] ${out ? "flex-row-reverse" : ""}`}>
-            <span className="font-mono font-bold text-foreground">{m.senderId}</span>
-            <span className="text-muted-foreground">·</span>
-            <span className="text-muted-foreground">{m.time}</span>
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9.5px] font-bold uppercase tracking-wider ${
+            <span className="font-mono font-bold tracking-tight text-foreground">{m.senderId}</span>
+            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.08em] ${
               PRIORITY[m.priority].cls
             }`}>{PRIORITY[m.priority].label}</span>
           </div>
