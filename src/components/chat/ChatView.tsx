@@ -714,7 +714,7 @@ function Bubble({
         )}
 
         {/* Card */}
-        <div className="relative w-full">
+        <div className="relative w-fit max-w-full">
           <div
             className={`animate-pop-in relative overflow-hidden text-[13.5px] leading-relaxed transition-all duration-300 ${
               out
@@ -755,9 +755,10 @@ function Bubble({
               {m.attachment?.kind === "voice" && <VoiceAttachment id={m.attachment.id} duration={m.attachment.duration!} bars={m.attachment.waveform!} />}
             </div>
 
-            <BubbleFooter m={m} out={out} />
+            <BubbleStatusLine m={m} out={out} />
           </div>
 
+          <BubbleQuickBar out={out} />
           <ReactionDock out={out} onPick={(e) => { onToggle(e); onRequestPicker(false); }} forceOpen={pickerOpen} onDismiss={() => onRequestPicker(false)} />
         </div>
 
