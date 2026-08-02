@@ -831,17 +831,18 @@ function AuditStrip({ m, conversationId, out }: { m: Message; conversationId: st
     { k: "Audit", v: "Available · Immutable record" },
   ];
   return (
-    <div className={`group/audit relative mt-1.5 inline-flex max-w-full items-center gap-1.5 rounded-full border border-border/70 bg-surface/70 px-2 py-0.5 font-mono text-[9.5px] text-muted-foreground backdrop-blur ${out ? "self-end" : "self-start"}`}>
+    <div
+      tabIndex={0}
+      aria-label={`Enterprise record for ${m.id}`}
+      className={`group/audit relative mt-1 inline-flex max-w-full items-center gap-1 rounded-full border border-transparent px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground/70 opacity-60 outline-none transition-all duration-200 hover:border-border/70 hover:bg-surface/80 hover:opacity-100 focus-visible:border-border focus-visible:opacity-100 group-hover:opacity-100 ${out ? "self-end" : "self-start"}`}
+    >
       <ShieldCheck className="h-2.5 w-2.5 text-[--color-success]" />
-      <span className="truncate font-semibold text-foreground/80">{m.id}</span>
-      <span className="text-border">·</span>
-      <span className="truncate">{conversationId}</span>
-      <span className="text-border">·</span>
+      <span className="truncate font-semibold text-foreground/70">{m.id}</span>
       <Lock className="h-2.5 w-2.5 text-[--color-success]" aria-label="Sealed" />
       <span className="text-[--color-success]">{readLabel === "Delivered · Read" ? "READ" : readLabel === "Delivered" ? "DLV" : "SENT"}</span>
-      <span className="text-border">·</span>
-      <FileText className="h-2.5 w-2.5" />
-      <span className="uppercase tracking-wider">Audit</span>
+      <span className="hidden items-center gap-1 group-hover/audit:inline-flex">
+        <FileText className="h-2.5 w-2.5" />
+      </span>
 
       {/* Hover / focus reveal — full record without cluttering the default state */}
       <div className={`pointer-events-none absolute ${out ? "right-0" : "left-0"} top-full z-30 mt-1 hidden min-w-[260px] rounded-xl border border-border bg-popover p-2.5 text-[10px] text-foreground shadow-[0_20px_50px_-20px_oklch(0.2_0.05_265/0.45)] group-hover/audit:block group-focus-within/audit:block`}>
