@@ -863,10 +863,10 @@ function Chip({ children, tone }: { children: React.ReactNode; tone: "indigo" | 
 
 function KpiRow({ id: _id }: { id: SectionId }) {
   const kpis = [
-    { label: "Configured", value: "128", hint: "Across all modules", tone: "indigo" as const, icon: LayoutGrid, delta: "+12", up: true, spark: [4, 6, 5, 8, 7, 10, 9, 12, 11, 14] },
-    { label: "Pending Review", value: "4", hint: "Awaiting approval", tone: "amber" as const, icon: AlertTriangle, delta: "-2", up: true, spark: [8, 7, 9, 6, 5, 6, 4, 5, 4, 4] },
-    { label: "Active Policies", value: "42", hint: "In production", tone: "emerald" as const, icon: ShieldCheck, delta: "+3", up: true, spark: [30, 32, 33, 34, 36, 37, 39, 40, 41, 42] },
-    { label: "Warnings", value: "0", hint: "Nothing to address", tone: "slate" as const, icon: CircleDot, delta: "0", up: true, spark: [2, 1, 1, 2, 1, 0, 1, 0, 0, 0] },
+    { label: "Configured", value: 128, ring: 84, hint: "Across all modules", tone: "indigo" as const, icon: LayoutGrid, delta: "+12", up: true, spark: [4, 6, 5, 8, 7, 10, 9, 12, 11, 14] },
+    { label: "Pending Review", value: 4, ring: 22, hint: "Awaiting approval", tone: "amber" as const, icon: AlertTriangle, delta: "-2", up: true, spark: [8, 7, 9, 6, 5, 6, 4, 5, 4, 4] },
+    { label: "Active Policies", value: 42, ring: 91, hint: "In production", tone: "emerald" as const, icon: ShieldCheck, delta: "+3", up: true, spark: [30, 32, 33, 34, 36, 37, 39, 40, 41, 42] },
+    { label: "Warnings", value: 0, ring: 0, hint: "Nothing to address", tone: "slate" as const, icon: CircleDot, delta: "0", up: true, spark: [2, 1, 1, 2, 1, 0, 1, 0, 0, 0] },
   ];
   return (
     <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -878,16 +878,21 @@ function KpiRow({ id: _id }: { id: SectionId }) {
           ? "text-[oklch(0.5_0.02_260)] bg-[oklch(0.97_0.01_255)] border-[oklch(0.92_0.01_255)]"
           : "text-[oklch(0.42_0.15_155)] bg-[oklch(0.97_0.05_155)] border-[oklch(0.85_0.14_155)]";
         return (
-          <div key={k.label} className="group rounded-2xl border border-[oklch(0.92_0.01_255)] bg-white p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-all hover:-translate-y-0.5 hover:shadow-[0_12px_28px_-16px_rgba(15,23,42,0.18)]">
+          <div key={k.label} className="group rounded-2xl border border-[oklch(0.92_0.01_255)] bg-white/85 p-4 shadow-[0_1px_2px_rgba(15,23,42,0.03)] backdrop-blur-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-[oklch(0.88_0.04_265)] hover:shadow-[0_14px_30px_-16px_rgba(15,23,42,0.2)]">
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[oklch(0.5_0.02_260)]">{k.label}</span>
               <Chip tone={k.tone}><Icon className="h-2.5 w-2.5" /></Chip>
             </div>
-            <div className="mt-2 flex items-end justify-between gap-2">
-              <div className="font-mono text-[22px] font-bold tabular-nums leading-none text-[oklch(0.18_0.03_260)]">{k.value}</div>
-              <span className={`inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 font-mono text-[9.5px] font-bold ${deltaCls}`}>
-                {k.delta !== "0" && (k.delta.startsWith("-") ? "▼" : "▲")} {k.delta.replace("-", "")}%
-              </span>
+            <div className="mt-2 flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <div className="font-mono text-[24px] font-bold tabular-nums leading-none text-[oklch(0.18_0.03_260)]">
+                  <AnimatedNumber value={k.value} />
+                </div>
+                <span className={`mt-1.5 inline-flex items-center gap-0.5 rounded-full border px-1.5 py-0.5 font-mono text-[9.5px] font-bold ${deltaCls}`}>
+                  {k.delta !== "0" && (k.delta.startsWith("-") ? "▼" : "▲")} {k.delta.replace("-", "")}%
+                </span>
+              </div>
+              <ProgressRing value={k.ring} tone={k.tone} />
             </div>
             <div className="mt-2 flex items-end gap-[3px] h-6">
               {k.spark.map((v, i) => {
