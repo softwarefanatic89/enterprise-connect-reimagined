@@ -472,15 +472,15 @@ function ConvRow({ c, active, onClick, onKeyDown, tabIndex }: { c: Conversation;
       data-conv-id={c.id}
       aria-current={active ? "true" : undefined}
       aria-label={`${c.id} — ${c.department}${c.priority ? `, priority ${c.priority}` : ""}${c.unread ? `, ${c.unread} unread` : ""}. Enter to open.`}
-      className={`group relative mx-1 my-1 grid w-[calc(100%-0.5rem)] grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-2xl px-3 py-2.5 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-1 ${
+      className={`group relative mx-1.5 my-1 grid w-[calc(100%-0.75rem)] grid-cols-[auto_minmax(0,1fr)] items-start gap-3 overflow-hidden rounded-xl border px-3 py-2.5 text-left transition-[transform,box-shadow,background-color,border-color] duration-200 ease-out focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 ${
         active
-          ? "bg-gradient-to-br from-[oklch(0.86_0.09_258)] to-[oklch(0.74_0.13_262)] text-[oklch(0.2_0.06_265)] shadow-[0_14px_36px_-12px_oklch(0.55_0.16_262/0.55),inset_0_1px_0_oklch(1_0_0/0.5)]"
-          : "bg-white text-[oklch(0.2_0.04_280)] hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_14px_30px_-14px_oklch(0.2_0.04_280/0.45)]"
+          ? "border-[oklch(0.72_0.13_262)]/45 bg-[oklch(0.95_0.035_262)] text-[oklch(0.2_0.06_265)] shadow-[0_8px_24px_-14px_oklch(0.4_0.12_262/0.55)]"
+          : "border-transparent bg-white text-[oklch(0.2_0.04_280)] hover:-translate-y-px hover:border-[oklch(0.88_0.02_270)] hover:shadow-[0_10px_24px_-16px_oklch(0.2_0.04_280/0.5)]"
       }`}
     >
       <span
-        className={`absolute left-0 top-1/2 h-8 w-1 -translate-y-1/2 rounded-r-full bg-[oklch(0.2_0.06_265)] transition-all duration-200 ${
-          active ? "opacity-100 scale-y-100" : "opacity-0 scale-y-50"
+        className={`absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 rounded-r-full bg-[oklch(0.58_0.16_262)] transition-all duration-200 ${
+          active ? "scale-y-100 opacity-100" : "scale-y-50 opacity-0 group-hover:scale-y-75 group-hover:opacity-40"
         }`}
       />
 
@@ -496,12 +496,12 @@ function ConvRow({ c, active, onClick, onKeyDown, tabIndex }: { c: Conversation;
               active ? "bg-[oklch(0.2_0.06_265)] text-[oklch(0.86_0.09_258)]" : priCls
             }`}>{c.priority}</span>
           )}
-          <span className={`ml-auto shrink-0 font-mono text-[10px] font-semibold tabular-nums ${
-            active ? "text-[oklch(0.3_0.06_265)]/80" : "text-muted-foreground"
+          <span className={`ml-auto shrink-0 font-mono text-[10px] font-medium tabular-nums ${
+            active ? "text-[oklch(0.3_0.06_265)]/75" : "text-muted-foreground/80"
           }`}>{c.lastTime}</span>
         </div>
 
-        <div className={`mt-0.5 flex items-center gap-1 truncate text-[11px] leading-tight ${
+        <div className={`mt-1 flex h-4 items-center gap-1 truncate text-[11.5px] leading-tight ${
           active ? "text-[oklch(0.3_0.06_265)]/85" : "text-muted-foreground"
         }`}>
           {Live && LiveIcon ? (

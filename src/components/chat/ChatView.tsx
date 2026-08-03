@@ -1115,7 +1115,7 @@ function SmartComposer({ chat }: { chat: Conversation }) {
         <AiSuggestionPanel onPick={(t) => { setValue(t); ref.current?.focus(); }} />
 
         {/* Composer card — solid premium surface */}
-        <div className="rounded-[18px] border border-border bg-surface shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_8px_24px_-12px_oklch(0.2_0.04_265/0.18)] transition-all focus-within:border-gold/50 focus-within:shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_0_0_4px_oklch(0.72_0.12_258/0.08),0_12px_32px_-12px_oklch(0.2_0.04_265/0.22)]">
+        <div className="rounded-2xl border border-border bg-surface shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_8px_24px_-12px_oklch(0.2_0.04_265/0.18)] transition-all duration-200 focus-within:border-primary/45 focus-within:shadow-[0_1px_0_0_oklch(1_0_0/0.7)_inset,0_0_0_4px_oklch(0.62_0.16_262/0.1),0_12px_32px_-12px_oklch(0.2_0.04_265/0.22)]">
 
           {/* Emotion drawer (revealed via long-press / More) */}
           {showEmotions && (
@@ -1171,7 +1171,7 @@ function SmartComposer({ chat }: { chat: Conversation }) {
               onClick={() => setTranslate((t) => !t)}
               title="Translate before send"
               className={`press hidden h-9 w-9 place-items-center rounded-lg transition-all sm:grid ${
-                translate ? "bg-gold/15 text-gold" : "text-muted-foreground/70 hover:bg-surface-hover hover:text-foreground"
+                translate ? "bg-primary/12 text-primary" : "text-muted-foreground/70 hover:bg-surface-hover hover:text-foreground"
               }`}
             >
               <Languages className="h-[18px] w-[18px]" />
@@ -1204,7 +1204,7 @@ function SmartComposer({ chat }: { chat: Conversation }) {
             <span className="flex min-w-0 items-center gap-2">
               <button
                 onClick={() => setShowEmotions((s) => !s)}
-                className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 font-semibold transition-all hover:border-gold/40 hover:text-foreground"
+                className="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 font-semibold transition-all hover:border-primary/40 hover:text-foreground"
                 title="Set emotion / status"
               >
                 <span className="emoji-3d">{EMOTION[emotion].icon}</span>
