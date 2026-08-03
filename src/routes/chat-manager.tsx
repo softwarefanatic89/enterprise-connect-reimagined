@@ -15,6 +15,9 @@ import {
 } from "lucide-react";
 import { AnalyticsAccessControl } from "@/components/analytics/AccessControl";
 import { useAnalyticsAccess } from "@/lib/analytics-access";
+import {
+  AnimatedNumber, ProgressRing, ActivityTimeline, ModuleControlGrid,
+} from "@/components/manager/ControlPrimitives";
 
 function AnalyticsAccessNotice() {
   const { role, canView, canExport } = useAnalyticsAccess();
@@ -176,6 +179,7 @@ function ChatManagerPage() {
             <div key={active} className="min-w-0 animate-fade-in rounded-2xl border border-[oklch(0.92_0.01_255)] bg-white p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)] md:p-6">
               <SectionRenderer id={active} />
             </div>
+            <ActivityTimeline />
           </div>
           <ContextPanel item={activeItem} />
         </div>
