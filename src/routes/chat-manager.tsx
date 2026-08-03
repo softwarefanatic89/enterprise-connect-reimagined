@@ -1405,6 +1405,7 @@ function SectionRenderer({ id }: { id: SectionId }) {
     );
     case "modules": return (
       <Section title="Module Mapping" desc="Which software modules can spawn conversations (AMS, Projects, Support, Sales, Accounts, Development).">
+        <ModuleControlGrid />
         <Table headers={["Module", "Code", "Chat Enabled", "Owner Department"]} note="Modules come from the Software Vala module registry — read-only here." />
       </Section>
     );
