@@ -1,10 +1,11 @@
 import {
-  Search, Sparkles, Bell, Hourglass, Settings, Users,
+  Search, Sparkles, Hourglass, Settings, Users,
   ShieldCheck, Command, SlidersHorizontal,
 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { LanguageMenu } from "./LanguageMenu";
 import { ViewPreferencesMenu } from "./ViewPreferencesMenu";
+import { NotificationCenter } from "./NotificationCenter";
 
 
 export function TopBar({ onOpenCommandPalette }: { onOpenCommandPalette?: () => void }) {
@@ -54,9 +55,7 @@ export function TopBar({ onOpenCommandPalette }: { onOpenCommandPalette?: () => 
           <Hourglass className="h-4 w-4" />
         </TBtn>
 
-        <TBtn label="Notifications" badge="3" badgeTone="danger">
-          <Bell className="h-4 w-4" />
-        </TBtn>
+        <NotificationCenter />
 
         <div className="mx-1 h-6 w-px bg-sidebar-border" />
 
