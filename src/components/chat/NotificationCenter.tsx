@@ -179,7 +179,8 @@ export function NotificationCenter() {
       seq.current += 1;
       const id = `NTF-${String(seq.current).padStart(6, "0")}`;
       const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      setItems((prev) => [{ ...tpl, id, time, bucket: "today", read: false }, ...prev].slice(0, 40));
+      const next: Notif = { ...tpl, id, time, bucket: "today" as Bucket, read: false };
+      setItems((prev) => [next, ...prev].slice(0, 40));
       setPulse(true);
       window.setTimeout(() => setPulse(false), 1200);
     }, 15000);
