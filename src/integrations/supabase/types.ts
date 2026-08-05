@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      chat_messages: {
+        Row: {
+          author_uid: string | null
+          body: string
+          conversation_id: string
+          created_at: string
+          department: string
+          id: string
+          module: string
+          priority: string
+          role: string
+          sender_id: string
+          status: string
+        }
+        Insert: {
+          author_uid?: string | null
+          body: string
+          conversation_id: string
+          created_at?: string
+          department?: string
+          id?: string
+          module?: string
+          priority?: string
+          role?: string
+          sender_id: string
+          status?: string
+        }
+        Update: {
+          author_uid?: string | null
+          body?: string
+          conversation_id?: string
+          created_at?: string
+          department?: string
+          id?: string
+          module?: string
+          priority?: string
+          role?: string
+          sender_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           created_at: string
