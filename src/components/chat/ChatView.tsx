@@ -45,7 +45,7 @@ export function ChatView({ chat }: { chat: Conversation }) {
 
 function ConversationRoot({ chat }: { chat: Conversation }) {
   const [msgs, setMsgs] = useState<Message[]>(() => messages.map((m) => ({ ...m })));
-  const { byConversation, markRead, connected } = useLiveMessages();
+  const { byConversation, markRead } = useLiveMessages();
   const live = byConversation[chat.id];
 
   // Stream new message bodies into the transcript as they arrive.
@@ -1106,6 +1106,7 @@ function SmartComposer({ chat }: { chat: Conversation }) {
   const [translate, setTranslate] = useState(false);
   const [sendState, setSendState] = useState<"idle" | "sending" | "sent">("idle");
   const ref = useRef<HTMLTextAreaElement>(null);
+  const { send } = useLiveMessages();
 
   useEffect(() => { ref.current?.focus(); }, []);
   useEffect(() => { setValue(""); ref.current?.focus(); }, [chat.id]);
@@ -1115,12 +1116,19 @@ function SmartComposer({ chat }: { chat: Conversation }) {
 
   const handleSend = () => {
     if (!value.trim() || sendState !== "idle") return;
+    const body = value.trim();
     setSendState("sending");
-    setTimeout(() => {
+    void send({
+      conversationId: chat.id,
+      text: body,
+      status: emotion,
+      department: chat.department,
+      module: chat.module,
+    }).finally(() => {
       setSendState("sent");
       setValue("");
       setTimeout(() => setSendState("idle"), 900);
-    }, 420);
+    });
   };
 
   return (
