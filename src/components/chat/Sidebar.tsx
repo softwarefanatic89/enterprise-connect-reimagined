@@ -61,6 +61,10 @@ export function Sidebar({
   const [unreadMap, setUnreadMap] = useState<Record<string, number>>(() =>
     Object.fromEntries(conversations.map((c) => [c.id, c.unread ?? 0])),
   );
+  const { unread: liveUnread, markRead } = useLiveMessages();
+
+  // Realtime arrivals for the open conversation are read immediately.
+  useEffect(() => { markRead(activeId); }, [activeId, liveUnread, markRead]);
 
   // Hydrate persisted filter + query once on mount (client-only).
   useEffect(() => {
