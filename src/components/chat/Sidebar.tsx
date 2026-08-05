@@ -85,10 +85,14 @@ export function Sidebar({
     setUnreadMap((prev) => (prev[activeId] ? { ...prev, [activeId]: 0 } : prev));
   }, [activeId]);
 
-  // Enriched conversations with live unread values.
+  // Enriched conversations with live unread values (seed state + realtime arrivals).
   const items = useMemo(
-    () => conversations.map((c) => ({ ...c, unread: unreadMap[c.id] ?? 0 })),
-    [unreadMap],
+    () =>
+      conversations.map((c) => ({
+        ...c,
+        unread: (unreadMap[c.id] ?? 0) + (c.id === activeId ? 0 : (liveUnread[c.id] ?? 0)),
+      })),
+    [unreadMap, liveUnread, activeId],
   );
 
   const counts = useMemo(() => {
