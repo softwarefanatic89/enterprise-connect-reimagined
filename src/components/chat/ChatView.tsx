@@ -12,6 +12,7 @@ import {
   type Message, type Conversation, type WorkStatus,
 } from "./data";
 import { supabase } from "@/integrations/supabase/client";
+import { useLiveMessages } from "@/lib/live-messages";
 import { toast } from "sonner";
 import { TranslatedText } from "./TranslatedText";
 import { LanguageMenu } from "./LanguageMenu";
@@ -44,6 +45,20 @@ export function ChatView({ chat }: { chat: Conversation }) {
 
 function ConversationRoot({ chat }: { chat: Conversation }) {
   const [msgs, setMsgs] = useState<Message[]>(() => messages.map((m) => ({ ...m })));
+  const { byConversation, markRead, connected } = useLiveMessages();
+  const live = byConversation[chat.id];
+
+  // Stream new message bodies into the transcript as they arrive.
+  useEffect(() => {
+    if (!live?.length) return;
+    setMsgs((prev) => {
+      const have = new Set(prev.map((m) => m.id));
+      const incoming = live.filter((m) => !have.has(m.id));
+      return incoming.length ? [...prev, ...incoming] : prev;
+    });
+    markRead(chat.id);
+  }, [live, chat.id, markRead]);
+
   const [editedIds, setEditedIds] = useState<Set<string>>(new Set());
   const [starred, setStarred] = useState<Set<string>>(new Set());
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(
