@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AtSign,
   Bell,
@@ -6,6 +6,7 @@ import {
   CircleAlert,
   Dot,
   MessageSquareQuote,
+  Radio,
   ShieldCheck,
   TicketCheck,
 } from "lucide-react";
@@ -134,10 +135,56 @@ const BUCKET_LABEL: Record<Bucket, string> = {
 };
 const BUCKET_ORDER: Bucket[] = ["today", "yesterday", "earlier"];
 
+/* Live feed templates — UI-only stream used to keep the center updating in place. */
+const LIVE_TEMPLATES: Array<Pick<Notif, "kind" | "title" | "body" | "meta">> = [
+  {
+    kind: "mention",
+    title: "QA-001284 mentioned you",
+    body: "@you can you confirm the RC1 sign-off owner for tonight's window?",
+    meta: "CONV-000231 · MSG-100112",
+  },
+  {
+    kind: "approval",
+    title: "Approval requested",
+    body: "Retention exception for DPT-SUPPORT awaiting lead approval.",
+    meta: "AMS-004598 · P2",
+  },
+  {
+    kind: "message",
+    title: "New message in CONV-000204",
+    body: "OPS-000912 shared the incident timeline for review.",
+    meta: "CONV-000204 · OPS",
+  },
+  {
+    kind: "alert",
+    title: "Latency above threshold",
+    body: "Median delivery latency crossed 900ms for WS-SV-PRIME.",
+    meta: "WS-SV-PRIME · SLA",
+  },
+];
+
 export function NotificationCenter() {
   const [items, setItems] = useState<Notif[]>(SEED);
   const [tab, setTab] = useState<"all" | "unread">("all");
   const [open, setOpen] = useState(false);
+  const [live, setLive] = useState(false);
+  const [pulse, setPulse] = useState(false);
+  const seq = useRef(148);
+
+  /* Live updates: new notifications stream in while the page is open. */
+  useEffect(() => {
+    setLive(true);
+    const tick = window.setInterval(() => {
+      const tpl = LIVE_TEMPLATES[Math.floor(Math.random() * LIVE_TEMPLATES.length)]!;
+      seq.current += 1;
+      const id = `NTF-${String(seq.current).padStart(6, "0")}`;
+      const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      setItems((prev) => [{ ...tpl, id, time, bucket: "today", read: false }, ...prev].slice(0, 40));
+      setPulse(true);
+      window.setTimeout(() => setPulse(false), 1200);
+    }, 15000);
+    return () => window.clearInterval(tick);
+  }, []);
 
   const unreadCount = items.filter((n) => !n.read).length;
 
@@ -172,7 +219,11 @@ export function NotificationCenter() {
         >
           <Bell className="h-4 w-4" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-[16px] place-items-center rounded-full bg-[--color-destructive] px-1 text-[9px] font-bold text-white ring-2 ring-sidebar">
+            <span
+              className={`absolute -right-0.5 -top-0.5 grid h-4 min-w-[16px] place-items-center rounded-full bg-[--color-destructive] px-1 text-[9px] font-bold text-white ring-2 ring-sidebar transition-transform ${
+                pulse ? "scale-125" : "scale-100"
+              }`}
+            >
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}
@@ -184,8 +235,16 @@ export function NotificationCenter() {
         <div className="flex items-center justify-between gap-3 border-b border-border px-3 py-2.5">
           <div className="min-w-0">
             <div className="text-[12.5px] font-bold leading-tight">Notifications</div>
-            <div className="truncate text-[10.5px] text-muted-foreground">
-              {unreadCount ? `${unreadCount} unread · WS-SV-PRIME` : "You're all caught up"}
+            <div className="flex items-center gap-1.5 truncate text-[10.5px] text-muted-foreground">
+              {live && (
+                <span className="inline-flex items-center gap-1 text-[--color-success]">
+                  <Radio className={`h-3 w-3 ${pulse ? "animate-pulse" : ""}`} />
+                  Live
+                </span>
+              )}
+              <span className="truncate">
+                {unreadCount ? `${unreadCount} unread · WS-SV-PRIME` : "You're all caught up"}
+              </span>
             </div>
           </div>
           <button
