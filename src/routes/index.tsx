@@ -8,6 +8,7 @@ import { TopBar } from "@/components/chat/TopBar";
 import { ShortcutsLayer } from "@/components/chat/Shortcuts";
 import { CommandPalette, pushRecent } from "@/components/chat/CommandPalette";
 import { conversations, type Conversation } from "@/components/chat/data";
+import { LiveMessagesProvider } from "@/lib/live-messages";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/")({
@@ -52,6 +53,7 @@ function Index() {
   };
 
   return (
+    <LiveMessagesProvider>
     <div className="animate-page-in flex h-dvh w-screen flex-col overflow-hidden bg-mesh bg-background text-foreground">
       <TopBar onOpenCommandPalette={() => setPaletteOpen(true)} />
       <div className="flex min-h-0 flex-1">
@@ -120,5 +122,6 @@ function Index() {
         onSelectConversation={selectConversation}
       />
     </div>
+    </LiveMessagesProvider>
   );
 }
