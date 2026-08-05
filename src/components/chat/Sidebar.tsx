@@ -6,6 +6,7 @@ import {
   Circle, Video, Mic, Phone, Clock, AlertTriangle, Bot, Crown,
 } from "lucide-react";
 import { conversations, ROLE, PRIORITY, type Conversation, type Presence, type LiveState } from "./data";
+import { useLiveMessages } from "@/lib/live-messages";
 
 const folders = [
   { id: "all",      label: "All",      icon: MessageCircle, hint: "All conversations" },
