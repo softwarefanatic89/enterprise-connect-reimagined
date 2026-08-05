@@ -6,6 +6,7 @@ import {
   Circle, Video, Mic, Phone, Clock, AlertTriangle, Bot, Crown,
 } from "lucide-react";
 import { conversations, ROLE, PRIORITY, type Conversation, type Presence, type LiveState } from "./data";
+import { useLiveMessages } from "@/lib/live-messages";
 
 const folders = [
   { id: "all",      label: "All",      icon: MessageCircle, hint: "All conversations" },
@@ -61,6 +62,10 @@ export function Sidebar({
   const [unreadMap, setUnreadMap] = useState<Record<string, number>>(() =>
     Object.fromEntries(conversations.map((c) => [c.id, c.unread ?? 0])),
   );
+  const { unread: liveUnread, markRead } = useLiveMessages();
+
+  // Realtime arrivals for the open conversation are read immediately.
+  useEffect(() => { markRead(activeId); }, [activeId, liveUnread, markRead]);
 
   // Hydrate persisted filter + query once on mount (client-only).
   useEffect(() => {
@@ -85,10 +90,14 @@ export function Sidebar({
     setUnreadMap((prev) => (prev[activeId] ? { ...prev, [activeId]: 0 } : prev));
   }, [activeId]);
 
-  // Enriched conversations with live unread values.
+  // Enriched conversations with live unread values (seed state + realtime arrivals).
   const items = useMemo(
-    () => conversations.map((c) => ({ ...c, unread: unreadMap[c.id] ?? 0 })),
-    [unreadMap],
+    () =>
+      conversations.map((c) => ({
+        ...c,
+        unread: (unreadMap[c.id] ?? 0) + (c.id === activeId ? 0 : (liveUnread[c.id] ?? 0)),
+      })),
+    [unreadMap, liveUnread, activeId],
   );
 
   const counts = useMemo(() => {
