@@ -89,7 +89,7 @@ export function AICopilotPanel({ chat, mobile = false }: { chat: Conversation; m
       {brief && (
         <div className="flex flex-col">
           <Section icon={<Wand2 className="h-3.5 w-3.5" />} title="AI Summary">
-            <p className="text-[12px] leading-relaxed text-foreground/90">{brief.summary}</p>
+            <p className="text-[12px] leading-relaxed text-foreground">{brief.summary}</p>
             {brief.bullets.length > 0 && (
               <ul className="mt-2 space-y-1">
                 {brief.bullets.map((b) => (
@@ -123,7 +123,7 @@ export function AICopilotPanel({ chat, mobile = false }: { chat: Conversation; m
                       Insert
                     </button>
                   </div>
-                  <p className="text-[11.5px] leading-relaxed text-foreground/85">{r.text}</p>
+                  <p className="text-[11.5px] leading-relaxed text-foreground/95">{r.text}</p>
                 </div>
               ))}
             </div>
