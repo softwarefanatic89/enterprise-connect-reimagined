@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Menu, PanelRightOpen } from "lucide-react";
 import { Sidebar } from "@/components/chat/Sidebar";
 import { ChatView } from "@/components/chat/ChatView";
-import { DetailsPanel } from "@/components/chat/DetailsPanel";
+import { RightRail } from "@/components/copilot/RightRail";
 import { TopBar } from "@/components/chat/TopBar";
 import { ShortcutsLayer } from "@/components/chat/Shortcuts";
 import { CommandPalette, pushRecent } from "@/components/chat/CommandPalette";
@@ -63,8 +63,8 @@ function Index() {
         {/* Chat area — full width on mobile */}
         <ChatView chat={active} />
 
-        {/* Right details — inline from xl+ */}
-        <DetailsPanel chat={active} />
+        {/* Right rail — AI Copilot + Details, inline from xl+ */}
+        <RightRail chat={active} />
       </div>
 
       {/* ─── Mobile: floating conversation-list trigger ─── */}
@@ -109,8 +109,8 @@ function Index() {
           side="bottom"
           className="h-[85dvh] border-t-0 bg-sidebar p-0 xl:hidden"
         >
-          <SheetTitle className="sr-only">Conversation details</SheetTitle>
-          <DetailsPanel mobile chat={active} />
+          <SheetTitle className="sr-only">AI Copilot and conversation details</SheetTitle>
+          <RightRail mobile chat={active} />
         </SheetContent>
       </Sheet>
 
