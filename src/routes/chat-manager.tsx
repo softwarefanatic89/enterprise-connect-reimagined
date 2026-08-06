@@ -1812,12 +1812,15 @@ function RoleMatrix() {
 function BottomStatusBar({
   item, group, onOpenPalette,
 }: { item: (typeof ALL_ITEMS)[number]; group: string; onOpenPalette: () => void }) {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
+    setNow(new Date());
     const t = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(t);
   }, []);
-  const time = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const time = now
+    ? now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false })
+    : "--:--";
   return (
     <footer className="z-30 flex h-8 shrink-0 items-center gap-3 border-t border-[oklch(0.92_0.01_255)] bg-white/95 px-3 font-mono text-[10.5px] text-[oklch(0.5_0.02_260)] backdrop-blur-xl md:px-5">
       <span className="inline-flex items-center gap-1 text-[oklch(0.4_0.15_155)]">

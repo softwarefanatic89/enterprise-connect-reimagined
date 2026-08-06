@@ -1111,6 +1111,18 @@ function SmartComposer({ chat }: { chat: Conversation }) {
   useEffect(() => { ref.current?.focus(); }, []);
   useEffect(() => { setValue(""); ref.current?.focus(); }, [chat.id]);
 
+  // AI Copilot → composer bridge (insert a suggested reply for review before sending).
+  useEffect(() => {
+    const onInsert = (e: Event) => {
+      const text = (e as CustomEvent<string>).detail;
+      if (typeof text !== "string") return;
+      setValue(text);
+      ref.current?.focus();
+    };
+    window.addEventListener("sv:copilot-insert", onInsert);
+    return () => window.removeEventListener("sv:copilot-insert", onInsert);
+  }, []);
+
   const max = 2000;
   const left = max - value.length;
 
